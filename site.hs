@@ -7,13 +7,13 @@ import Hakyll
 --------------------------------------------------------------------------------
 main :: IO ()
 main = hakyll $ do
-  match "images/*" $ do
+  match "assets/*" $ do
     route idRoute
     compile copyFileCompiler
 
-  match "css/*" $ do
-    route idRoute
-    compile compressCssCompiler
+  match "scss/*.scss" $ do
+    route $ constRoute "assets/main.css"
+    compile compressScssCompiler
 
   match (fromList ["about.rst", "contact.markdown"]) $ do
     route   $ setExtension "html"
@@ -57,6 +57,17 @@ main = hakyll $ do
         >>= relativizeUrls
 
   match "templates/*" $ compile templateBodyCompiler
+
+
+--------------------------------------------------------------------------------
+compressScssCompiler :: Compiler (Item String)
+compressScssCompiler =
+  getResourceString
+    >>= withItemBody (unixFilter "sass" [ "-s"
+                                        , "--scss"
+                                        , "--style", "compressed"
+                                        , "--load-path", "scss"
+                                        ])
 
 
 --------------------------------------------------------------------------------
