@@ -7,7 +7,7 @@ import Hakyll
 --------------------------------------------------------------------------------
 main :: IO ()
 main = hakyll $ do
-  match "assets/*" $ do
+  match "assets/**" $ do
     route idRoute
     compile copyFileCompiler
 
@@ -16,7 +16,7 @@ main = hakyll $ do
     compile compressScssCompiler
 
   match (fromList ["about.rst", "contact.markdown"]) $ do
-    route   $ setExtension "html"
+    route $ setExtension "html"
     compile $ pandocCompiler
       >>= loadAndApplyTemplate "templates/default.html" defaultContext
       >>= relativizeUrls
@@ -56,7 +56,7 @@ main = hakyll $ do
         >>= loadAndApplyTemplate "templates/default.html" indexCtx
         >>= relativizeUrls
 
-  match "templates/*" $ compile templateBodyCompiler
+  match "templates/**" $ compile templateBodyCompiler
 
 
 --------------------------------------------------------------------------------
