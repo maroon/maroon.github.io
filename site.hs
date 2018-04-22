@@ -18,15 +18,15 @@ main = hakyll $ do
   match "about.md" $ do
     route $ setExtension "html"
     compile $ pandocCompiler
-      >>= loadAndApplyTemplate "templates/post.html"    postCtx
-      >>= loadAndApplyTemplate "templates/default.html" postCtx
+      >>= loadAndApplyTemplate "templates/post/body.html" postCtx
+      >>= loadAndApplyTemplate "templates/site/body.html" postCtx
       >>= relativizeUrls
 
   match "posts/*" $ do
     route $ setExtension "html"
     compile $ pandocCompiler
-      >>= loadAndApplyTemplate "templates/post.html"    postCtx
-      >>= loadAndApplyTemplate "templates/default.html" postCtx
+      >>= loadAndApplyTemplate "templates/post/body.html" postCtx
+      >>= loadAndApplyTemplate "templates/site/body.html" postCtx
       >>= relativizeUrls
 
   create ["archive.html"] $ do
@@ -40,7 +40,7 @@ main = hakyll $ do
 
       makeItem ""
         >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-        >>= loadAndApplyTemplate "templates/default.html" archiveCtx
+        >>= loadAndApplyTemplate "templates/site/body.html" archiveCtx
         >>= relativizeUrls
 
   match "index.html" $ do
@@ -54,7 +54,7 @@ main = hakyll $ do
 
       getResourceBody
         >>= applyAsTemplate indexCtx
-        >>= loadAndApplyTemplate "templates/default.html" indexCtx
+        >>= loadAndApplyTemplate "templates/site/body.html" indexCtx
         >>= relativizeUrls
 
   match "templates/**" $ compile templateBodyCompiler
