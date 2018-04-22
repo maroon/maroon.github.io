@@ -1,0 +1,28 @@
+$if(date)$
+  <div class="page-footer">
+    <div class="wrapper">
+      <span class="post-date">$date$</span>
+    </div>
+  </div>
+$endif$
+
+<div class="site-divider"></div>
+
+<footer class="site-footer">
+  <div class="wrapper">
+    <div class="footer-column-wrapper">
+      <div class="footer-column footer-site-description">
+        Experiments, problems, ideas, and general nonsense.<br />
+        My name is <a href="/about.html">Ryan and I like programming.</a>
+      </div>
+      <div class="footer-column footer-social-column">
+        <ul class="social-list">
+          <li>$partial("templates/social/rss.html")$</li>
+          <li>$partial("templates/social/email.html")$</li>
+          <li>$partial("templates/social/github.html")$</li>
+          <li>$partial("templates/social/twitter.html")$</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
