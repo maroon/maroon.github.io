@@ -15,10 +15,11 @@ main = hakyll $ do
     route $ constRoute "assets/main.css"
     compile compressScssCompiler
 
-  match (fromList ["about.rst", "contact.markdown"]) $ do
+  match "about.md" $ do
     route $ setExtension "html"
     compile $ pandocCompiler
-      >>= loadAndApplyTemplate "templates/default.html" defaultContext
+      >>= loadAndApplyTemplate "templates/post.html"    postCtx
+      >>= loadAndApplyTemplate "templates/default.html" postCtx
       >>= relativizeUrls
 
   match "posts/*" $ do
@@ -35,7 +36,7 @@ main = hakyll $ do
       let archiveCtx =
             listField "posts" postCtx (return posts) `mappend`
             constField "title" "Archives"            `mappend`
-            defaultContext
+            metaCtx
 
       makeItem ""
         >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
@@ -49,7 +50,7 @@ main = hakyll $ do
       let indexCtx =
             listField "posts" postCtx (return posts) `mappend`
             constField "title" "Home"                `mappend`
-            defaultContext
+            metaCtx
 
       getResourceBody
         >>= applyAsTemplate indexCtx
@@ -71,7 +72,15 @@ compressScssCompiler =
 
 
 --------------------------------------------------------------------------------
+metaCtx :: Context String
+metaCtx =
+  constField "site_title" "Maroon" `mappend`
+  constField "name" "Ryan Maroon"  `mappend`
+  constField "github" "maroon"     `mappend`
+  defaultContext
+
 postCtx :: Context String
 postCtx =
-  dateField "date" "%B %e, %Y" `mappend`
-  defaultContext
+  boolField "is_post" (const True) `mappend`
+  dateField "date" "%b %e, %Y"     `mappend`
+  metaCtx
