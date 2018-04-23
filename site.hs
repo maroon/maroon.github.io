@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 import Data.Monoid (mappend)
 import Hakyll
-
+import System.FilePath (dropExtension)
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -23,7 +23,7 @@ main = hakyll $ do
       >>= relativizeUrls
 
   match "posts/*" $ do
-    route $ setExtension "html"
+    route dateRoute
     compile $ pandocCompiler
       >>= loadAndApplyTemplate "templates/post/body.html" postCtx
       >>= loadAndApplyTemplate "templates/site/body.html" postCtx
@@ -60,7 +60,15 @@ main = hakyll $ do
   match "templates/**" $ compile templateBodyCompiler
 
 
---------------------------------------------------------------------------------
+-- Functions -------------------------------------------------------------------
+dateRoute :: Routes
+dateRoute =
+  gsubRoute "/[0-9]{4}-[0-9]{2}-[0-9]{2}-" (replaceAll "-" $ const "/") `composeRoutes`
+  customRoute (dropExtension . toFilePath) `composeRoutes`
+  setExtension "html"
+
+
+-- Compilers -------------------------------------------------------------------
 compressScssCompiler :: Compiler (Item String)
 compressScssCompiler =
   getResourceString
@@ -71,7 +79,7 @@ compressScssCompiler =
                                         ])
 
 
---------------------------------------------------------------------------------
+-- Contexts --------------------------------------------------------------------
 metaCtx :: Context String
 metaCtx =
   constField "site_title" "Maroon" `mappend`
