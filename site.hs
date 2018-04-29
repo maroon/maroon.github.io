@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
-import Data.Monoid (mappend)
+import Control.Monad (liftM)
+import Data.Monoid (mappend, (<>))
 import Hakyll
 import System.FilePath (dropExtension)
 
@@ -29,18 +30,21 @@ main = hakyll $ do
       >>= loadAndApplyTemplate "templates/site/body.html" postCtx
       >>= relativizeUrls
 
-  create ["archive.html"] $ do
+  page <- buildPaginateWith archiveGroup "posts/*" archiveId
+  paginateRules page $ \pageNum pattern -> do
     route idRoute
     compile $ do
-      posts <- recentFirst =<< loadAll "posts/*"
-      let archiveCtx =
-            listField "posts" postCtx (return posts) `mappend`
-            constField "title" "Archives"            `mappend`
-            metaCtx
+      posts <- recentFirst =<< loadAll pattern
+      let paginateCtx = paginateContext page pageNum
+          ctx =
+            constField "title" "Archives" <>
+            listField "posts" postCtx (return posts) <>
+            paginateCtx <>
+            postCtx
 
       makeItem ""
-        >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-        >>= loadAndApplyTemplate "templates/site/body.html" archiveCtx
+        >>= loadAndApplyTemplate "templates/archive/body.html" ctx
+        >>= loadAndApplyTemplate "templates/site/body.html" ctx
         >>= relativizeUrls
 
   match "index.html" $ do
@@ -60,12 +64,22 @@ main = hakyll $ do
   match "templates/**" $ compile templateBodyCompiler
 
 
--- Functions -------------------------------------------------------------------
+-- Routes ----------------------------------------------------------------------
 dateRoute :: Routes
 dateRoute =
   gsubRoute "/[0-9]{4}-[0-9]{2}-[0-9]{2}-" (replaceAll "-" $ const "/") `composeRoutes`
   customRoute (dropExtension . toFilePath) `composeRoutes`
   setExtension "html"
+
+
+-- Pagination  -----------------------------------------------------------------
+archiveGroup :: MonadMetadata m => [Identifier] -> m [[Identifier]]
+archiveGroup = liftM (paginateEvery pages . drop pages) . sortRecentFirst
+  where
+    pages = 10
+
+archiveId :: PageNumber -> Identifier
+archiveId pageNum = fromFilePath $ "archive/page/" ++ (show pageNum) ++ "/index.html"
 
 
 -- Compilers -------------------------------------------------------------------

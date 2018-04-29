@@ -7,6 +7,10 @@
   @include vertical-spacing;
 }
 
+.vertical-buffer {
+  @include vertical-spacing(1);
+}
+
 .site-header, .page-header, .page-footer {
   > .wrapper {
     text-align: center;
@@ -61,6 +65,43 @@
   display: block;
 
   color: $faded-color;
+}
+
+.archive {
+  text-align: center;
+
+  @include vertical-spacing(8);
+
+  > a {
+    @extend %heading-6;
+  }
+}
+
+.archive-nav {
+  display: flex;
+  flex-flow: nowrap;
+  align-items: center;
+  justify-content: center;
+
+  @extend %heading-1;
+
+  > div {
+    min-width: 33%;
+  }
+
+  > .archive-nav-left {
+    text-align: right;
+    padding: 0 0.5em;
+  }
+
+  > .archive-nav-right {
+    text-align: left;
+    padding: 0 0.5em;
+  }
+}
+
+.archive-nav-link {
+  text-decoration: none;
 }
 
 .social-list {
