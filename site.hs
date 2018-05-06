@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
 import Control.Monad (liftM)
-import Data.Monoid (mappend, (<>))
+import Data.Monoid ((<>))
 import Hakyll
 import System.FilePath (dropExtension)
 
@@ -52,8 +52,8 @@ main = hakyll $ do
     compile $ do
       posts <- recentFirst =<< loadAll "posts/*"
       let indexCtx =
-            listField "posts" postCtx (return posts) `mappend`
-            constField "title" "Home"                `mappend`
+            listField "posts" postCtx (return posts) <>
+            constField "title" "Home" <>
             metaCtx
 
       getResourceBody
@@ -96,13 +96,13 @@ compressScssCompiler =
 -- Contexts --------------------------------------------------------------------
 metaCtx :: Context String
 metaCtx =
-  constField "site_title" "Maroon" `mappend`
-  constField "name" "Ryan Maroon"  `mappend`
-  constField "github" "maroon"     `mappend`
+  constField "site_title" "Maroon" <>
+  constField "name" "Ryan Maroon" <>
+  constField "github" "maroon" <>
   defaultContext
 
 postCtx :: Context String
 postCtx =
-  boolField "is_post" (const True) `mappend`
-  dateField "date" "%b %e, %Y"     `mappend`
+  boolField "is_post" (const True) <>
+  dateField "date" "%b %e, %Y" <>
   metaCtx
