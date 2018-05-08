@@ -26,6 +26,7 @@ main = hakyll $ do
   match "posts/*" $ do
     route dateRoute
     compile $ pandocCompiler
+      >>= saveSnapshot "content"
       >>= loadAndApplyTemplate "templates/post/body.html" postCtx
       >>= loadAndApplyTemplate "templates/site/body.html" postCtx
       >>= relativizeUrls
@@ -64,9 +65,33 @@ main = hakyll $ do
 
   match "templates/**" $ compile templateBodyCompiler
 
+  create ["feed.xml"] $ do
+    route idRoute
+    compile $ do
+      let feedCtx =
+            bodyField "description" <>
+            postCtx
+
+      posts <- fmap (take postsPerPage) . recentFirst
+        =<< loadAllSnapshots "posts/*" "content"
+
+      renderAtom feedConfig feedCtx posts
+
+
 -- Values ----------------------------------------------------------------------
 postsPerPage :: Int
 postsPerPage = 10
+
+
+-- Feeds -----------------------------------------------------------------------
+feedConfig :: FeedConfiguration
+feedConfig = FeedConfiguration
+  { feedTitle = "Maroon"
+  , feedDescription = "Experiments, problems, ideas, and general nonsense."
+  , feedAuthorName = "Ryan Maroon"
+  , feedAuthorEmail = "ryan.maroon@protonmail.com"
+  , feedRoot = "maroon.github.io"
+  }
 
 
 -- Routes ----------------------------------------------------------------------
