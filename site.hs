@@ -54,6 +54,7 @@ main = hakyll $ do
       let indexCtx =
             listField "posts" postCtx (return posts) <>
             constField "title" "Home" <>
+            boolField "show_archive" (const $ length posts > postsPerPage) <>
             metaCtx
 
       getResourceBody
@@ -62,6 +63,10 @@ main = hakyll $ do
         >>= relativizeUrls
 
   match "templates/**" $ compile templateBodyCompiler
+
+-- Values ----------------------------------------------------------------------
+postsPerPage :: Int
+postsPerPage = 10
 
 
 -- Routes ----------------------------------------------------------------------
@@ -74,9 +79,7 @@ dateRoute =
 
 -- Pagination  -----------------------------------------------------------------
 archiveGroup :: MonadMetadata m => [Identifier] -> m [[Identifier]]
-archiveGroup = liftM (paginateEvery pages . drop pages) . sortRecentFirst
-  where
-    pages = 10
+archiveGroup = liftM (paginateEvery postsPerPage . drop postsPerPage) . sortRecentFirst
 
 archiveId :: PageNumber -> Identifier
 archiveId pageNum = fromFilePath $ "archive/page/" ++ (show pageNum) ++ "/index.html"
