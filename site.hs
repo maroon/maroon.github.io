@@ -195,7 +195,9 @@ formatPostUrlContext = mapContext format (urlField "url")
 metaContext :: Config -> Context String
 metaContext config =
   constField "site_title" (title config) <>
+  constField "site_desc" (description config) <>
   constField "name" (author . social $ config) <>
+  constField "email" (email . social $ config) <>
   maybeField "github" (github . social $ config) <>
   maybeField "twitter" (twitter . social $ config) <>
   boolField "show_feed" (const . showFeed . display $ config) <>
