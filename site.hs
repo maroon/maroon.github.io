@@ -10,7 +10,13 @@ import System.FilePath ((</>), dropExtension, takeDirectory,
 
 --------------------------------------------------------------------------------
 main :: IO ()
-main = hakyll $ do
+main = loadConfiguration >>= runHakyll
+
+runHakyll :: Config -> IO ()
+runHakyll config = hakyll $ do
+  let postCtx = postContext config
+  let metaCtx = metaContext config
+
   match "assets/**" $ do
     route idRoute
     compile copyFileCompiler
@@ -78,7 +84,7 @@ main = hakyll $ do
       posts <- fmap (take postsPerPage) . recentFirst
         =<< loadAllSnapshots "posts/*" "content"
 
-      renderAtom feedConfig feedCtx posts
+      renderAtom (feedConfig config) feedCtx posts
 
 
 -- YAML ------------------------------------------------------------------------
@@ -120,13 +126,13 @@ postsPerPage = 10
 
 
 -- Feeds -----------------------------------------------------------------------
-feedConfig :: FeedConfiguration
-feedConfig = FeedConfiguration
-  { feedTitle = "Maroon"
-  , feedDescription = "Experiments, problems, ideas, and general nonsense."
-  , feedAuthorName = "Ryan Maroon"
-  , feedAuthorEmail = "ryan.maroon@protonmail.com"
-  , feedRoot = "maroon.github.io"
+feedConfig :: Config -> FeedConfiguration
+feedConfig config = FeedConfiguration
+  { feedTitle = title config
+  , feedDescription = description config
+  , feedRoot = baseUrl config
+  , feedAuthorName = author . social $ config
+  , feedAuthorEmail = email . social $ config
   }
 
 
@@ -158,24 +164,29 @@ compressScssCompiler =
 
 
 -- Contexts --------------------------------------------------------------------
-formatPostUrlCtx :: Context a
-formatPostUrlCtx = mapContext format (urlField "url")
+maybeField :: String -> Maybe String -> Context a
+maybeField _ Nothing    = mempty
+maybeField key (Just v) = constField key v
+
+formatPostUrlContext :: Context a
+formatPostUrlContext = mapContext format (urlField "url")
   where
     format url =
       case splitFileName url of
         (p, "index.html") -> addTrailingPathSeparator . takeDirectory $ p
         _                 -> url
 
-metaCtx :: Context String
-metaCtx =
-  constField "site_title" "Maroon" <>
-  constField "name" "Ryan Maroon" <>
-  constField "github" "maroon" <>
+metaContext :: Config -> Context String
+metaContext config =
+  constField "site_title" (title config) <>
+  constField "name" (author . social $ config) <>
+  maybeField "github" (github . social $ config) <>
+  maybeField "twitter" (twitter . social $ config) <>
   defaultContext
 
-postCtx :: Context String
-postCtx =
+postContext :: Config -> Context String
+postContext config =
   boolField "is_post" (const True) <>
   dateField "date" "%b %e, %Y" <>
-  formatPostUrlCtx <>
-  metaCtx
+  formatPostUrlContext <>
+  metaContext config
