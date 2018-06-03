@@ -2,6 +2,12 @@ title: Maroon
 description: Experiments, problems, ideas, and general nonsense.
 base_url: maroon.github.io
 
+display:
+  feed: true
+  email: false
+  github: true
+  twitter: false
+
 social:
   author: Ryan Maroon
   email: ryan.maroon@protonmail.com

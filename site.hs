@@ -92,7 +92,15 @@ data Config = Config
   { title :: String
   , description :: String
   , baseUrl :: String
+  , display :: Display
   , social :: Social
+  } deriving (Eq, Show)
+
+data Display = Display
+  { showFeed :: Bool
+  , showEmail :: Bool
+  , showGithub :: Bool
+  , showTwitter :: Bool
   } deriving (Eq, Show)
 
 data Social = Social
@@ -107,7 +115,15 @@ instance FromJSON Config where
     <$> v .: "title"
     <*> v .: "description"
     <*> v .: "base_url"
+    <*> v .: "display"
     <*> v .: "social"
+
+instance FromJSON Display where
+  parseJSON (Object v) = Display
+    <$> v .: "feed"
+    <*> v .: "email"
+    <*> v .: "github"
+    <*> v .: "twitter"
 
 instance FromJSON Social where
   parseJSON (Object v) = Social
@@ -182,6 +198,10 @@ metaContext config =
   constField "name" (author . social $ config) <>
   maybeField "github" (github . social $ config) <>
   maybeField "twitter" (twitter . social $ config) <>
+  boolField "show_feed" (const . showFeed . display $ config) <>
+  boolField "show_email" (const . showEmail . display $ config) <>
+  boolField "show_github" (const . showGithub . display $ config) <>
+  boolField "show_twitter" (const . showTwitter . display $ config) <>
   defaultContext
 
 postContext :: Config -> Context String
