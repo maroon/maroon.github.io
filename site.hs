@@ -26,7 +26,7 @@ runHakyll config = hakyll $ do
     compile compressScssCompiler
 
   match "about.md" $ do
-    route $ setExtension "html"
+    route indexRoute
     compile $ pandocCompiler
       >>= loadAndApplyTemplate "templates/post/body.html" postCtx
       >>= loadAndApplyTemplate "templates/site/body.html" postCtx
@@ -156,6 +156,10 @@ feedConfig config = FeedConfiguration
 dateRoute :: Routes
 dateRoute =
   gsubRoute "/[0-9]{4}-[0-9]{2}-[0-9]{2}-" (replaceAll "-" $ const "/") `composeRoutes`
+  indexRoute
+
+indexRoute :: Routes
+indexRoute =
   customRoute ((</> "index") . dropExtension . toFilePath) `composeRoutes`
   setExtension "html"
 
