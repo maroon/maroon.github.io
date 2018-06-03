@@ -3,7 +3,8 @@
 import Control.Monad (liftM)
 import Data.Monoid ((<>))
 import Hakyll
-import System.FilePath (dropExtension)
+import System.FilePath ((</>), dropExtension, takeDirectory,
+                        splitFileName, addTrailingPathSeparator)
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -98,7 +99,7 @@ feedConfig = FeedConfiguration
 dateRoute :: Routes
 dateRoute =
   gsubRoute "/[0-9]{4}-[0-9]{2}-[0-9]{2}-" (replaceAll "-" $ const "/") `composeRoutes`
-  customRoute (dropExtension . toFilePath) `composeRoutes`
+  customRoute ((</> "index") . dropExtension . toFilePath) `composeRoutes`
   setExtension "html"
 
 
@@ -122,6 +123,14 @@ compressScssCompiler =
 
 
 -- Contexts --------------------------------------------------------------------
+formatPostUrlCtx :: Context a
+formatPostUrlCtx = mapContext format (urlField "url")
+  where
+    format url =
+      case splitFileName url of
+        (p, "index.html") -> addTrailingPathSeparator . takeDirectory $ p
+        _                 -> url
+
 metaCtx :: Context String
 metaCtx =
   constField "site_title" "Maroon" <>
@@ -133,4 +142,5 @@ postCtx :: Context String
 postCtx =
   boolField "is_post" (const True) <>
   dateField "date" "%b %e, %Y" <>
+  formatPostUrlCtx <>
   metaCtx
