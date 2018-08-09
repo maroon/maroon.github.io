@@ -1,5 +1,6 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
+
 import Control.Monad (liftM)
 import Data.Monoid ((<>))
 import Data.Yaml (FromJSON (..), Value (..), (.:), (.:?))
@@ -21,9 +22,18 @@ runHakyll config = hakyll $ do
     route idRoute
     compile copyFileCompiler
 
-  match "scss/*.scss" $ do
-    route $ constRoute "assets/main.css"
-    compile compressScssCompiler
+  match "scss/**.scss" $ do
+    route idRoute
+    compile getResourceString
+
+  scssDependency <- makePatternDependency "scss/**.scss"
+  rulesExtraDependencies [scssDependency] $ do
+    create ["assets/main.css"] $ do
+      route idRoute
+      compile $
+        loadBody "scss/novella.scss"
+          >>= makeItem
+          >>= scssCompiler
 
   match "about.md" $ do
     route indexRoute
@@ -173,14 +183,12 @@ archiveId pageNum = fromFilePath $ "archive/page/" ++ (show pageNum) ++ "/index.
 
 
 -- Compilers -------------------------------------------------------------------
-compressScssCompiler :: Compiler (Item String)
-compressScssCompiler =
-  getResourceString
-    >>= withItemBody (unixFilter "sass" [ "-s"
-                                        , "--scss"
-                                        , "--style", "compressed"
-                                        , "--load-path", "scss"
-                                        ])
+scssCompiler :: Item String -> Compiler (Item String)
+scssCompiler = withItemBody (unixFilter "sass" [ "-s"
+                                               , "--scss"
+                                               , "--style", "compressed"
+                                               , "--load-path", "scss"
+                                               ])
 
 
 -- Contexts --------------------------------------------------------------------
