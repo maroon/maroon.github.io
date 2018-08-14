@@ -46,23 +46,16 @@ ul, ol, dl {
   @include horizontal-padding(0.8);
 }
 
-pre, code {
-  font-size: 1.25em;
-  background-color: $highlight-color;
-  border-radius: 0.375em;
+div > pre {
+  color: #586e75;
+  background-color: #faf2d0;
+
+  @extend %code-block;
 }
 
-pre {
-  font-size: 1em;
-  padding: 0.5em;
-  margin: 1.5em;
-  overflow-x: auto;
-
-  > code {
-    border: 0;
-  }
-}
-
-code {
+*:not([class]) > code {
   padding: 0.15em 0.25em;
+  background-color: $highlight-color;
+
+  @extend %code-blurb;
 }
