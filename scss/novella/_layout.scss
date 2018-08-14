@@ -110,24 +110,29 @@
 
   margin: 0;
   padding: 0;
-}
 
-.social-link {
-  text-decoration: none;
-}
-
-.social-svg {
-  display: inline-block;
-  vertical-align: middle;
-
-  > svg {
-    margin-right: 0.25em;
-    width: 1.15em;
-    height: 1.15em;
+  > li {
+    @include vertical-spacing(8);
   }
 }
 
+.social-link {
+  display: inline-block;
+  padding: 0 0.125em;
+  text-decoration: none;
+}
+
+.social-svg > svg {
+  display: inline-block;
+  vertical-align: middle;
+
+  width: 1em;
+  height: 1em;
+}
+
 .social-text {
+  display: inline-block;
+  vertical-align: middle;
   text-decoration: none;
 }
 
@@ -169,10 +174,8 @@
 
   .social-link {
     display: block;
+    padding: 0.25em;
 
-    padding-top: 0.25em;
-    padding-bottom: 0.25em;
-
-    @include vertical-spacing(4);
+    @include vertical-spacing;
   }
 }
