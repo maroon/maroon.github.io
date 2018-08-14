@@ -1,6 +1,6 @@
 {
-    "text-color": "#3b3836",
-    "background-color": "#faf2cc",
+    "text-color": "#586e75",
+    "background-color": null,
     "line-number-color": "#aaaaaa",
     "line-number-background-color": null,
     "text-styles": {
@@ -54,7 +54,7 @@
             "underline": false
         },
         "Operator": {
-            "text-color": "#666666",
+            "text-color": "#586e75",
             "background-color": null,
             "bold": false,
             "italic": false,
