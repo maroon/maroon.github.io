@@ -28,17 +28,19 @@ Option 3's cost is specializing a generic with a *single known* concrete attribu
 
 The document also gives this code use example:
 
-    struct S<T> {
-      var x: T
-      @_specialize(Int, Float)
-      mutating func exchangeSecond<U>(_ u: U, _ t: T) -> (U, T) {
-        x = t
-        return (u, x)
-      }
-    }
+``` swift
+struct S<T> {
+  var x: T
+  @_specialize(Int, Float)
+  mutating func exchangeSecond<U>(_ u: U, _ t: T) -> (U, T) {
+    x = t
+    return (u, x)
+  }
+}
 
-    // Substitutes: <T, U> with <Int, Float> producing:
-    // S<Int>::exchangeSecond<Float>(u: Float, t: Int) -> (Float, Int)
+// Substitutes: <T, U> with <Int, Float> producing:
+// S<Int>::exchangeSecond<Float>(u: Float, t: Int) -> (Float, Int)
+```
 
 What I have found is that, yes, this does alleviate the problem that I've described in this post, however, *only the module dependency can call this*. This effectively means that only one type, the specialized type, will be performant–– everything else will suffer. If the `Stack` module were to use this decorator on the `push` and `pop` methods for the `Int` type, any other type, such as `Double`, would have the *same* terrible performance degradation that I've described.
 
