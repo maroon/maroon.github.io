@@ -49,6 +49,10 @@ div > pre {
   background-color: #faf2d0;
 
   @extend %code-block;
+
+  > code > a {
+    padding: 0;
+  }
 }
 
 *:not([class]) > code {
