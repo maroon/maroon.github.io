@@ -17,10 +17,10 @@ $endif$
       </div>
       <div class="footer-column footer-social-column">
         <ul class="social-list">
-          <li>$partial("templates/social/rss.html")$</li>
-          <li>$partial("templates/social/email.html")$</li>
-          <li>$partial("templates/social/github.html")$</li>
-          <li>$partial("templates/social/twitter.html")$</li>
+          $if(show_feed)$<li>$partial("templates/social/rss.html")$</li>$endif$
+          $if(show_email)$<li>$partial("templates/social/email.html")$</li>$endif$
+          $if(show_github)$<li>$partial("templates/social/github.html")$</li>$endif$
+          $if(show_twitter)$<li>$partial("templates/social/twitter.html")$</li>$endif$
         </ul>
       </div>
     </div>
