@@ -1,0 +1,10 @@
+.DS_Store
+.ignore
+*.sh
+.ghc*
+
+# Build folders
+_cache/
+_site/
+dist*/
+.sass-cache/
