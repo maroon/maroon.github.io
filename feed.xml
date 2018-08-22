@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>Maroon</title>
+    <link href="maroon.github.io/feed.xml" rel="self" />
+    <link href="maroon.github.io" />
+    <id>maroon.github.io/feed.xml</id>
+    <author>
+        <name>Ryan Maroon</name>
+        <email>ryan.maroon@protonmail.com</email>
+    </author>
+    <updated>2017-10-14T00:00:00Z</updated>
+    <entry>
+    <title>Swift 4 Reusable Codable Structures</title>
+    <link href="maroon.github.io/posts/2017/10/14/swift-reusable-codable-structures/" />
+    <id>maroon.github.io/posts/2017/10/14/swift-reusable-codable-structures/</id>
+    <published>2017-10-14T00:00:00Z</published>
+    <updated>2017-10-14T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>There is much pomp and circumstance over the new Swift <code>Codable</code> protocol. After indulging myself in the documentation and examples for a few hours, I couldn’t help but feel there was a glaring omission: reusable structures.</p>
+<p>In several projects that I’ve worked on I have found a need for a common contract between responses. For instance, I may want to know if the request had a successful operation–– and if not, perhaps a message informing me what the server had to say about it. This essentially creates a wrapper around the otherwise simple payload structure. To make the example a bit more interesting I’ll convolute the common data with another wrapper around it. Thus, the payload will be contained within a result structure which is confined to a frivolous wrapper, like so:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode javascript"><code class="sourceCode javascript"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="op">{</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">  <span class="st">&quot;response&quot;</span><span class="op">:</span> <span class="op">{</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">    <span class="st">&quot;successful&quot;</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">    <span class="st">&quot;message&quot;</span><span class="op">:</span> <span class="kw">null</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">    <span class="st">&quot;payload&quot;</span><span class="op">:</span> <span class="op">{</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">      <span class="st">&quot;first_name&quot;</span><span class="op">:</span> <span class="st">&quot;Ryan&quot;</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">      <span class="st">&quot;last_name&quot;</span><span class="op">:</span> <span class="st">&quot;Maroon&quot;</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">      <span class="st">&quot;hobby&quot;</span><span class="op">:</span> <span class="st">&quot;Programming&quot;</span></a>
+<a class="sourceLine" id="cb1-9" data-line-number="9">    <span class="op">}</span></a>
+<a class="sourceLine" id="cb1-10" data-line-number="10">  <span class="op">}</span></a>
+<a class="sourceLine" id="cb1-11" data-line-number="11"><span class="op">}</span></a></code></pre></div>
+<p>Rather than constructing a very elaborate decoder path or rewriting the same boilerplate code for each structure, such behavior can be accommodated with the use of generics.</p>
+<pre class="swift"><code>struct Response&lt;T: Codable&gt;: Codable {
+  let result: Result&lt;T&gt;
+
+  private enum CodingKeys: String, CodingKey {
+    case result = &quot;response&quot;
+  }
+}
+
+struct Result&lt;T: Codable&gt;: Codable {
+  let successful: Bool
+  let message: String?
+  let payload: T
+}</code></pre>
+<p>Swift will now parse any payload data so long as it conforms to the <code>Codable</code> protocol. We’ll take a look at another example of this in a bit. First, let’s take a look at the response payload representing the person data set.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode javascript"><code class="sourceCode javascript"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="op">{</span></a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">  <span class="st">&quot;first_name&quot;</span><span class="op">:</span> <span class="st">&quot;Ryan&quot;</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">  <span class="st">&quot;last_name&quot;</span><span class="op">:</span> <span class="st">&quot;Maroon&quot;</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">  <span class="st">&quot;hobby&quot;</span><span class="op">:</span> <span class="st">&quot;Programming&quot;</span></a>
+<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="op">}</span></a></code></pre></div>
+<p>The structure for such a response would then be described as such:</p>
+<pre class="swift"><code>struct Person: Codable {
+  let firstName: String
+  let lastName: String
+  let hobby: String
+
+  private enum CodingKeys: String, CodingKey {
+    case firstName = &quot;first_name&quot;
+    case lastName = &quot;last_name&quot;
+    case hobby
+  }
+}</code></pre>
+<p>Finally, the decoder would take the response data and the generic wrapper like this:</p>
+<pre class="swift"><code>let decoder = JSONDecoder()
+let payload = try! decoder.decode(Response&lt;Person.self&gt;, from: responseData)</code></pre>
+<p>That’s it! Another example, as mentioned earlier, would be to utilize an array which also conforms to <code>Codable</code>. Assuming this is the payload from the server:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode javascript"><code class="sourceCode javascript"><a class="sourceLine" id="cb6-1" data-line-number="1">[</a>
+<a class="sourceLine" id="cb6-2" data-line-number="2">  <span class="st">&quot;Haskell&quot;</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3">  <span class="st">&quot;Elixir&quot;</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb6-4" data-line-number="4">  <span class="st">&quot;Elm&quot;</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb6-5" data-line-number="5">]</a></code></pre></div>
+<p>The decoder call would then be expressed as:</p>
+<pre class="swift"><code>let payload = try! decoder.decode(Response&lt;[String]&gt;.self, from: responseData)</code></pre>]]></summary>
+</entry>
+<entry>
+    <title>Swift Package Manager and Generics</title>
+    <link href="maroon.github.io/posts/2016/10/31/swift-package-manager-and-generics/" />
+    <id>maroon.github.io/posts/2016/10/31/swift-package-manager-and-generics/</id>
+    <published>2016-10-31T00:00:00Z</published>
+    <updated>2016-10-31T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>A while back I had completed updating an old flood fill algorithm when I realized it would be a great opportunity to play with the Swift Package Manager. I set off to break apart the monolithic project into several standalone pieces that I could reuse within other projects. In the end I created two modules: one for the flood fill algorithm and another for the stack that the algorithm depended upon. Afterwards I created an application to house the flood fill module and output the result to disk. Everything appeared to be going very well!</p>
+<p>The layout for the project dependencies were remarkably linear: the <code>FloodFillApp</code> depended upon the <code>FloodFill</code> module which depended upon the <code>Stack</code> module. Originally, without the separate modules, my image was taking around 200 milliseconds to process in debug mode and 40 milliseconds in release mode. I realized there might be some slight performance degradation due to <code>-whole-module-optimization</code> not being able to optimize as efficiently across module boundaries, however I wasn’t quite prepared for a sudden jump to over <em>2 minutes</em> for my image! After double checking that I didn’t miss some obscure implementation detail, I decided to try release mode. Running <code>swift build -c release</code> brought me down <em>16 seconds</em>. Huzzah?</p>
+<p>After a few days of pain and toil, I came across the core of my problem: generics. I had attempted to make my <code>Stack</code> module something that could be recycled into other projects, so generics were the obvious solution. Unfortunately, after all of the tests I performed, there was no solution that would enable better performance with the project and modules “as-is”. There are a couple of options to help with performance, but they each come with a steep cost.</p>
+<ol type="1">
+<li>Remove generics from the <code>Stack</code> module.</li>
+<li>Move the <code>Stack</code> module inside the <code>FloodFill</code> module.</li>
+<li>Use <code>@_specialize</code> on the generic class in the <code>Stack</code> module.</li>
+</ol>
+<p>Let’s take a look at each of those options.</p>
+<p>Option 1’s cost is removing generics: your module won’t be as flexible or powerful as it could be using generics. This is impractical from a collection’s standpoint. Imagine if Swift had the same crippling limitation put on something as significant as its array class: we’d have an IntArray, DoubleArray, and so forth. It’d be rubbish to develop a collection module around a single type, each of which utilizing the exact same code with only the type changing.</p>
+<p>That said, removing generics resolves the performance issues significantly. Running this in release mode with separate modules yields a 50 millisecond execution time.</p>
+<p>Option 2’s cost is the equivalent of removing Swift Package Manager entirely and sticking everything back into the monolithic project. This, unfortunately, seems to be the best option. Without the ability to optimize for generics across module boundaries, we are right back to putting the project file in the workspace and manually linking the frameworks up from there.</p>
+<p>Option 3’s cost is specializing a generic with a <em>single known</em> concrete attribute. Of the three options I’ve found, I don’t consider this a viable solution in any sense. Let me first give you an idea of what this decorator does: from the <a href="https://github.com/apple/swift/blob/master/docs/Generics.rst#specialization">Swift ‘Generics.rst’ document</a>:</p>
+<blockquote>
+<p><span class="citation" data-cites="_specialize">@_specialize</span> currently acts as a hint to the optimizer, which generates type checks and code to dispatch to the specialized routine without affecting the signature of the generic function. The intention is to support efforts at evaluating the performance of specialized code. The performance impact is not guaranteed and is likely to change with the optimizer. This attribute should only be used in conjunction with rigorous performance analysis. Eventually, a similar attribute could be defined in the language, allowing it to be exposed as part of a function’s API. That would allow direct dispatch to specialized code without type checks, even across modules.</p>
+</blockquote>
+<p>The document also gives this code use example:</p>
+<pre class="swift"><code>struct S&lt;T&gt; {
+  var x: T
+  @_specialize(Int, Float)
+  mutating func exchangeSecond&lt;U&gt;(_ u: U, _ t: T) -&gt; (U, T) {
+    x = t
+    return (u, x)
+  }
+}
+
+// Substitutes: &lt;T, U&gt; with &lt;Int, Float&gt; producing:
+// S&lt;Int&gt;::exchangeSecond&lt;Float&gt;(u: Float, t: Int) -&gt; (Float, Int)</code></pre>
+<p>What I have found is that, yes, this does alleviate the problem that I’ve described in this post, however, <em>only the module dependency can call this</em>. This effectively means that only one type, the specialized type, will be performant–– everything else will suffer. If the <code>Stack</code> module were to use this decorator on the <code>push</code> and <code>pop</code> methods for the <code>Int</code> type, any other type, such as <code>Double</code>, would have the <em>same</em> terrible performance degradation that I’ve described.</p>
+<p>That said, the performance of using <code>@_specialize</code> garnered a 90 millisecond execution time. That’s over double the integrated, non-generic version of this project. When I originally separated everything into separate modules, this is roughly the level of performance that I had anticipated it being. For myself, it would be considered an acceptable performance penalty in order to maintain separate module boundaries and to isolate the scope of each project.</p>]]></summary>
+</entry>
+
+</feed>
