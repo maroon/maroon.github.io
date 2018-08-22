@@ -81,7 +81,7 @@ runHakyll config = hakyll $ do
     compile $ do
       posts <- recentFirst =<< loadAll "posts/*"
       archiveYear <- yearForIdentifier (itemIdentifier . head $ posts)
-      let archivePage = show . archiveId . fromIntegral $ archiveYear
+      let archivePage = show . archiveId $ archiveYear
       let indexCtx =
             listField "posts" postCtx (return posts) <>
             constField "title" "Home" <>
@@ -187,11 +187,11 @@ indexRoute =
 
 
 -- Pagination  -----------------------------------------------------------------
-yearForIdentifier :: MonadMetadata m => Identifier -> m Integer
+yearForIdentifier :: (MonadMetadata m, Num a) => Identifier -> m a
 yearForIdentifier i = do
   time <- getItemUTC defaultTimeLocale i
   let (year, _, _) = toGregorian . localDay $ utcToLocalTime utc time
-  return year
+  return $ fromIntegral year
 
 archiveGroup :: MonadMetadata m => [Identifier] -> m [[Identifier]]
 archiveGroup ids = do
@@ -205,7 +205,7 @@ archiveId :: PageNumber -> Identifier
 archiveId pageNum = fromFilePath $ "archive/year/" ++ (show pageNum) ++ "/index.html"
 
 archivePages :: MonadMetadata m => [Identifier] -> m PageNumber
-archivePages = (fromIntegral <$>) . yearForIdentifier . head
+archivePages = yearForIdentifier . head
 
 buildArchivePaginateWith :: MonadMetadata m
                          => ([Identifier] -> m [[Identifier]])
