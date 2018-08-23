@@ -29,7 +29,7 @@
 %code-block {
   padding: 0.5em;
   margin: 0 1.5em !important;
-  overflow-x: auto;
+  overflow-x: scroll !important;
 
   @extend %code-blurb;
 }
