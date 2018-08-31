@@ -226,11 +226,13 @@ buildArchivePaginateWith grouper pattern makeId = do
 
 -- Compilers -------------------------------------------------------------------
 scssCompiler :: Item String -> Compiler (Item String)
-scssCompiler = withItemBody (unixFilter "sass" [ "-s"
-                                               , "--scss"
-                                               , "--style", "compressed"
-                                               , "--load-path", "scss"
-                                               ])
+scssCompiler = withItemBody $ unixFilter "sass" arguments
+  where
+    arguments = [ "-s"
+                , "--scss"
+                , "--style", "compressed"
+                , "--load-path", "scss"
+                ]
 
 
 -- Contexts --------------------------------------------------------------------
