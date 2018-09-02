@@ -119,6 +119,8 @@
 .social-link {
   display: inline-block;
   text-decoration: none;
+
+  @include horizontal-padding(4);
 }
 
 .social-svg > svg {
