@@ -57,7 +57,6 @@ After many failed attempts to skirt the issue, I discovered that Hakyll provides
 
 ``` haskell
 match "scss/**.scss" $ do
-  route idRoute
   compile getResourceString
 
 scssDependency <- makePatternDependency "scss/**.scss"
@@ -79,6 +78,6 @@ scssCompiler = withItemBody $ unixFilter "sass" arguments
                 ]
 ```
 
-Now the matcher contains the recursive glob, which is also reflected in the `makePatternDependency` call. The compile step changes to retrieve the resource's contents rather than sending it to `sass`. This change allows the `novella.scss` contents to be recalled in the dependency step while skipping over any `sass` compilations for the imported SCSS files. The dependency step, as just mentioned, recalls the contents of `novella.scss` and passes it along to `sass`. Hakyll then takes the output and writes it to `assets/main.css`.
+Now the matcher contains the recursive glob, which is also reflected in the `makePatternDependency` call, and removes the route call. The compile step changes to retrieve the resource's contents rather than sending it to `sass`. This change allows the `novella.scss` contents to be recalled in the dependency step while skipping over any `sass` compilations for the imported SCSS files. The dependency step, as just mentioned, recalls the contents of `novella.scss` and passes it along to `sass`. Hakyll then takes the output and writes it to `assets/main.css`.
 
 Voilà! Hakyll will now update the CSS file whenever the any of the SCSS files are modified.

@@ -32,7 +32,6 @@ runHakyll config = hakyll $ do
     compile copyFileCompiler
 
   match "scss/**.scss" $ do
-    route idRoute
     compile getResourceString
 
   scssDependency <- makePatternDependency "scss/**.scss"
