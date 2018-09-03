@@ -61,3 +61,9 @@ div > pre {
 
   @extend %code-blurb;
 }
+
+@include media-query($small-screen) {
+  div > pre {
+    margin: 0 !important;
+  }
+}
