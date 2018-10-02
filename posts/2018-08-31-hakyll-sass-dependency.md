@@ -1,7 +1,7 @@
 ---
-title: "Hakyll Sass Dependency"
+title: Hakyll Sass Dependency
 date: 2018-08-31 08:06:26 -0500
-tags: [haskell, hakyll, sass, novella]
+tags: haskell, hakyll, sass, novella
 ---
 
 One of the very first adventures I had in Hakyll was coming up with a way to get the Sass compiler working with it. Some time ago I had published a [theme for Jekyll](https://github.com/maroon/novella), which I had decided I wanted to keep around for this blog. I simply created a `scss` directory which housed the theme's files.

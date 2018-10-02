@@ -1,7 +1,7 @@
 ---
-title: "Swift Package Manager and Generics"
+title: Swift Package Manager and Generics
 date: 2016-10-31 10:07:43 -0500
-tags: [swift, swift-package-manager, performance, generics]
+tags: swift, swift-package-manager, performance, generics
 ---
 
 A while back I had completed updating an old flood fill algorithm when I realized it would be a great opportunity to play with the Swift Package Manager. I set off to break apart the monolithic project into several standalone pieces that I could reuse within other projects. In the end I created two modules: one for the flood fill algorithm and another for the stack that the algorithm depended upon. Afterwards I created an application to house the flood fill module and output the result to disk. Everything appeared to be going very well!

@@ -1,7 +1,7 @@
 ---
-title: "Hakyll Routes"
+title: Hakyll Routes
 date: 2018-10-02 12:35:52 -0500
-tags: [haskell, hakyll]
+tags: haskell, hakyll
 ---
 
 During the move to Hakyll, I decided it would be best to reflect on the slugs used within the site. The idea would be to strip off any HTML matter from the slug, making the slug itself the star of the show. The end result would look something like `/posts/yyyy/mm/dd/post-name/` or `/page-name/`.

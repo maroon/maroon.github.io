@@ -1,7 +1,7 @@
 ---
-title: "Swift 4 Reusable Codable Structures"
+title: Swift 4 Reusable Codable Structures
 date: 2017-10-14 12:56:43 -0500
-tags: [swift, codable]
+tags: swift, codable
 ---
 
 There is much pomp and circumstance over the new Swift `Codable` protocol. After indulging myself in the documentation and examples for a few hours, I couldn't help but feel there was a glaring omission: reusable structures.
