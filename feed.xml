@@ -8,8 +8,71 @@
         <name>Ryan Maroon</name>
         <email>ryan.maroon@protonmail.com</email>
     </author>
-    <updated>2018-10-02T00:00:00Z</updated>
+    <updated>2018-11-08T00:00:00Z</updated>
     <entry>
+    <title>Swift Localizing Transformations</title>
+    <link href="maroon.github.io/posts/2018/11/08/swift-localizing-transformations/" />
+    <id>maroon.github.io/posts/2018/11/08/swift-localizing-transformations/</id>
+    <published>2018-11-08T00:00:00Z</published>
+    <updated>2018-11-08T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>The other day I was dealing with <code>CATransform3D</code> and found prototyping animations with it to be rather cumbersome. It wasn’t that the animations were difficult, or even hard to understand, rather it was that I found myself with far more clutter than I could keep track of. Simply rotating two views around a center point became tedious as both required slightly different variations of one another and thus were polluting the namespace with overlapping variables. Variables that I’d have to reassign, mutate, or name as one-offs. Creating a function was a bit over-the-top as I was still playing with ideas; I didn’t want anything concrete, nor did I want to waste time working out a common abstraction.</p>
+<p>It was then that I found myself longing for days where I could create a new scope in C and be done with it. I began wondering what exactly that would look like in Swift. How would I go about creating something like that? I knew that I couldn’t just write an extension for <code>Any</code> as it is a non-nominal type, nor could I just throw it onto <code>AnyObject</code> because that would exclude <code>struct</code> types.</p>
+<p>What I wanted was simple: a scope operator. The problem is that I have no way of representing that within the confines of the language. So what was I <em>really</em> after?</p>
+<ol type="1">
+<li>I would like semi-local variables that overlap in name, but don’t conflict and can remain immutable.</li>
+<li>I want to deal with a convenient variable name rather than something like <code>view.layer.transform</code>.</li>
+<li>I would like not to worry about an intermediary variable to assign the mutated value to.</li>
+<li>I want to be able to specify a scope without creating new function definitions everywhere.</li>
+</ol>
+<p>The first item can be a little confusing for those that haven’t run into C scopes before. I’m going to express it here in Objective-C.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode objectivec"><code class="sourceCode objectivec"><a class="sourceLine" id="cb1-1" data-line-number="1">{</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">  CGPoint point = CGPointMake(<span class="dv">5</span>, <span class="dv">12</span>);</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">  {</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">    CGPoint point = CGPointMake(<span class="dv">44</span>, <span class="dv">-11</span>);</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">    NSLog(<span class="st">@&quot;%@&quot;</span>, NSStringFromCGPoint(point));</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">  }</a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">  NSLog(<span class="st">@&quot;%@&quot;</span>, NSStringFromCGPoint(point));</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">}</a></code></pre></div>
+<p>Outputs:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode objectivec"><code class="sourceCode objectivec"><a class="sourceLine" id="cb2-1" data-line-number="1">{<span class="dv">44</span>, <span class="dv">-11</span>}</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">{<span class="dv">5</span>, <span class="dv">12</span>}</a></code></pre></div>
+<p>For me, being able to rapidly scope out details like this is an immeasurably powerful tool.</p>
+<p>I started toying with the shape of these ideas by writing a function that would take a value and transform it.</p>
+<pre class="swift"><code>let f: (CATransform3D) -&gt; CATransform3D = { transform in
+  // Mutate
+  return transform
+}</code></pre>
+<p>That’s a fine start, but there is a problem: I still would have to mess with intermediary variables. I couldn’t just tell the closure that I wanted to mutate the variable <code>transform</code>. <a href="https://github.com/apple/swift-evolution/blob/master/proposals/0003-remove-var-parameters.md">Rest in peace, my sweet prince.</a> I’d have to create a new variable that was mutable within the scope of the closure.</p>
+<pre class="swift"><code>let f: (CATransform3D) -&gt; CATransform3D = { transform in
+  var transform = transform
+  // Mutate
+  return transform
+}</code></pre>
+<p>That’s pretty ugly. This design does say something about where to go from here, though. That says to me that I want to reassign the mutated value back to the original input. OK, that’s an easy enough change.</p>
+<pre class="swift"><code>let f: (inout CATransform3D) -&gt; Void = { transform in
+  // Mutate
+}</code></pre>
+<p>That is a <em>lot</em> closer to what I actually want. This also knocks out the first 3 items on the list! That last one though–– that’s going to be tough. Maybe with just a little luck and a bit of finesse I can get rid of the function variable name and…</p>
+<pre class="swift"><code>_ = { (transform: inout CATransform3D) -&gt; Void in
+  // Mutate
+}(&amp;currentFace.layer.transform)</code></pre>
+<p><a href="https://giphy.com/gifs/x-men-michael-fassbender-gdHpm6yTnzYJO">Perfection.</a></p>
+<p>No. Just kidding. That’s downright awful. Arguably worse than where it just was.</p>
+<p>Looking closely at how it is being expressed does give a hint about what is needed. This is forcing an assignment. Without <code>_ =</code> it won’t compile. Rather than throwing out a function that mutates a value, it might be better expressed as an operator.</p>
+<p>I’m not really a fan of creating new operators, as most of the time I feel it can rapidly pollute the namespace with awkward or unnecessary structures. Used sparingly and when appropriate, I find them to be remarkably expressive.</p>
+<pre class="swift"><code>infix operator =&gt;
+func =&gt; &lt;T&gt;(value: inout T, transform: (inout T) throws -&gt; Void) rethrows {
+  try transform(&amp;value)
+}</code></pre>
+<p>This will take some left-hand <code>value</code> and apply <code>transform</code> to it. Since the left-hand <code>value</code> is <code>T</code>, both of the parameters that involve <code>T</code> will require <code>inout</code> to be applied in order to permit mutation.</p>
+<pre class="swift"><code>view.layer.transform =&gt; { transform in
+  transform = CATransform3DTranslate(transform, x, y, 0.0)
+  transform = CATransform3DRotate(transform, rotation, 1, 0, 0)
+  transform = CATransform3DTranslate(transform, x, y, 0.0)
+}</code></pre>
+<p>Now all of the items on my list are crossed off and I have a very straightforward transform applied to the structure that I ultimately wanted to mutate.</p>]]></summary>
+</entry>
+<entry>
     <title>Hakyll Routes</title>
     <link href="maroon.github.io/posts/2018/10/02/hakyll-routes/" />
     <id>maroon.github.io/posts/2018/10/02/hakyll-routes/</id>

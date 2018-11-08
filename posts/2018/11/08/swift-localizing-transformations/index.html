@@ -5,16 +5,16 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Home</title>
+  <title>Swift Localizing Transformations</title>
 
-  <link rel="stylesheet" href="./assets/main.css">
+  <link rel="stylesheet" href="../../../../../assets/main.css">
 </head>
 
   
   <body>
     <header class="site-header">
   <div class="wrapper">
-    <a class="site-title " href="./">Maroon</a>
+    <a class="site-title  small-title " href="../../../../../">Maroon</a>
   </div>
 </header>
 
@@ -23,44 +23,80 @@
 
     <main class="page-content">
       <div class="wrapper">
-        <div class="home">
-  <ul class="posts">
-  
-    <li>
-      <a class="post-link" href="./posts/2018/11/08/swift-localizing-transformations/">Swift Localizing Transformations</a>
-      <span class="post-date">Nov  8, 2018</span>
-    </li>
-  
-    <li>
-      <a class="post-link" href="./posts/2018/10/02/hakyll-routes/">Hakyll Routes</a>
-      <span class="post-date">Oct  2, 2018</span>
-    </li>
-  
-    <li>
-      <a class="post-link" href="./posts/2018/08/31/hakyll-sass-dependency/">Hakyll Sass Dependency</a>
-      <span class="post-date">Aug 31, 2018</span>
-    </li>
-  
-    <li>
-      <a class="post-link" href="./posts/2017/10/14/swift-reusable-codable-structures/">Swift 4 Reusable Codable Structures</a>
-      <span class="post-date">Oct 14, 2017</span>
-    </li>
-  
-    <li>
-      <a class="post-link" href="./posts/2016/10/31/swift-package-manager-and-generics/">Swift Package Manager and Generics</a>
-      <span class="post-date">Oct 31, 2016</span>
-    </li>
-  
-</ul>
-
-
-  
+        <div class="page-header">
+  <div class="wrapper">
+    <h1>Swift Localizing Transformations</h1>
+  </div>
 </div>
+
+
+<p>The other day I was dealing with <code>CATransform3D</code> and found prototyping animations with it to be rather cumbersome. It wasn’t that the animations were difficult, or even hard to understand, rather it was that I found myself with far more clutter than I could keep track of. Simply rotating two views around a center point became tedious as both required slightly different variations of one another and thus were polluting the namespace with overlapping variables. Variables that I’d have to reassign, mutate, or name as one-offs. Creating a function was a bit over-the-top as I was still playing with ideas; I didn’t want anything concrete, nor did I want to waste time working out a common abstraction.</p>
+<p>It was then that I found myself longing for days where I could create a new scope in C and be done with it. I began wondering what exactly that would look like in Swift. How would I go about creating something like that? I knew that I couldn’t just write an extension for <code>Any</code> as it is a non-nominal type, nor could I just throw it onto <code>AnyObject</code> because that would exclude <code>struct</code> types.</p>
+<p>What I wanted was simple: a scope operator. The problem is that I have no way of representing that within the confines of the language. So what was I <em>really</em> after?</p>
+<ol type="1">
+<li>I would like semi-local variables that overlap in name, but don’t conflict and can remain immutable.</li>
+<li>I want to deal with a convenient variable name rather than something like <code>view.layer.transform</code>.</li>
+<li>I would like not to worry about an intermediary variable to assign the mutated value to.</li>
+<li>I want to be able to specify a scope without creating new function definitions everywhere.</li>
+</ol>
+<p>The first item can be a little confusing for those that haven’t run into C scopes before. I’m going to express it here in Objective-C.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode objectivec"><code class="sourceCode objectivec"><a class="sourceLine" id="cb1-1" data-line-number="1">{</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">  CGPoint point = CGPointMake(<span class="dv">5</span>, <span class="dv">12</span>);</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">  {</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">    CGPoint point = CGPointMake(<span class="dv">44</span>, <span class="dv">-11</span>);</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">    NSLog(<span class="st">@&quot;%@&quot;</span>, NSStringFromCGPoint(point));</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">  }</a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">  NSLog(<span class="st">@&quot;%@&quot;</span>, NSStringFromCGPoint(point));</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">}</a></code></pre></div>
+<p>Outputs:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode objectivec"><code class="sourceCode objectivec"><a class="sourceLine" id="cb2-1" data-line-number="1">{<span class="dv">44</span>, <span class="dv">-11</span>}</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">{<span class="dv">5</span>, <span class="dv">12</span>}</a></code></pre></div>
+<p>For me, being able to rapidly scope out details like this is an immeasurably powerful tool.</p>
+<p>I started toying with the shape of these ideas by writing a function that would take a value and transform it.</p>
+<pre class="swift"><code>let f: (CATransform3D) -&gt; CATransform3D = { transform in
+  // Mutate
+  return transform
+}</code></pre>
+<p>That’s a fine start, but there is a problem: I still would have to mess with intermediary variables. I couldn’t just tell the closure that I wanted to mutate the variable <code>transform</code>. <a href="https://github.com/apple/swift-evolution/blob/master/proposals/0003-remove-var-parameters.md">Rest in peace, my sweet prince.</a> I’d have to create a new variable that was mutable within the scope of the closure.</p>
+<pre class="swift"><code>let f: (CATransform3D) -&gt; CATransform3D = { transform in
+  var transform = transform
+  // Mutate
+  return transform
+}</code></pre>
+<p>That’s pretty ugly. This design does say something about where to go from here, though. That says to me that I want to reassign the mutated value back to the original input. OK, that’s an easy enough change.</p>
+<pre class="swift"><code>let f: (inout CATransform3D) -&gt; Void = { transform in
+  // Mutate
+}</code></pre>
+<p>That is a <em>lot</em> closer to what I actually want. This also knocks out the first 3 items on the list! That last one though–– that’s going to be tough. Maybe with just a little luck and a bit of finesse I can get rid of the function variable name and…</p>
+<pre class="swift"><code>_ = { (transform: inout CATransform3D) -&gt; Void in
+  // Mutate
+}(&amp;currentFace.layer.transform)</code></pre>
+<p><a href="https://giphy.com/gifs/x-men-michael-fassbender-gdHpm6yTnzYJO">Perfection.</a></p>
+<p>No. Just kidding. That’s downright awful. Arguably worse than where it just was.</p>
+<p>Looking closely at how it is being expressed does give a hint about what is needed. This is forcing an assignment. Without <code>_ =</code> it won’t compile. Rather than throwing out a function that mutates a value, it might be better expressed as an operator.</p>
+<p>I’m not really a fan of creating new operators, as most of the time I feel it can rapidly pollute the namespace with awkward or unnecessary structures. Used sparingly and when appropriate, I find them to be remarkably expressive.</p>
+<pre class="swift"><code>infix operator =&gt;
+func =&gt; &lt;T&gt;(value: inout T, transform: (inout T) throws -&gt; Void) rethrows {
+  try transform(&amp;value)
+}</code></pre>
+<p>This will take some left-hand <code>value</code> and apply <code>transform</code> to it. Since the left-hand <code>value</code> is <code>T</code>, both of the parameters that involve <code>T</code> will require <code>inout</code> to be applied in order to permit mutation.</p>
+<pre class="swift"><code>view.layer.transform =&gt; { transform in
+  transform = CATransform3DTranslate(transform, x, y, 0.0)
+  transform = CATransform3DRotate(transform, rotation, 1, 0, 0)
+  transform = CATransform3DTranslate(transform, x, y, 0.0)
+}</code></pre>
+<p>Now all of the items on my list are crossed off and I have a very straightforward transform applied to the structure that I ultimately wanted to mutate.</p>
 
       </div>
     </main>
 
     
+  <div class="page-footer">
+    <div class="wrapper">
+      <span class="post-date">Nov  8, 2018</span>
+    </div>
+  </div>
+
 
 <div class="site-divider"></div>
 
@@ -69,11 +105,11 @@
     <div class="footer-column-wrapper">
       <div class="footer-column footer-site-description">
         Experiments, problems, ideas, and general nonsense.<br />
-        My name is <a href="./about/">Ryan and I like programming.</a>
+        My name is <a href="../../../../../about/">Ryan and I like programming.</a>
       </div>
       <div class="footer-column footer-social-column">
         <ul class="social-list">
-          <li><a class="social-link" href="./feed.xml">
+          <li><a class="social-link" href="../../../../../feed.xml">
   <span class="social-svg"><?xml version="1.0" ?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg enable-background="new 0 0 50 50" id="Layer_1" version="1.1" viewBox="0 0 50 50" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="_x2E__x29__x29_"><circle cx="18.5" cy="31.5" fill="#F2890A" id="Dot__x28____x29_" r="3.1"></circle><path d="M15.4,11.5v3.8c10.6,0,19.2,8.6,19.2,19.2h3.8C38.5,21.8,28.2,11.5,15.4,11.5z" fill="#F2890A" id="Line__x29__1_"></path><path d="M15.4,19.2V23C21.8,23,27,28.2,27,34.6h3.8C30.8,26.1,23.9,19.2,15.4,19.2z" fill="#F2890A" id="Line__x29_"></path></g><path d="M25,1C11.7,1,1,11.7,1,25s10.7,24,24,24s24-10.7,24-24S38.3,1,25,1z M25,44C14.5,44,6,35.5,6,25S14.5,6,25,6  s19,8.5,19,19S35.5,44,25,44z" fill="#F2890A"></path></svg></span>
   <span class="social-text">Subscribe</span>
 </a>
