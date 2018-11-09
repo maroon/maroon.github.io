@@ -10,9 +10,9 @@
     </author>
     <updated>2018-11-08T00:00:00Z</updated>
     <entry>
-    <title>Swift Localizing Transformations</title>
-    <link href="maroon.github.io/posts/2018/11/08/swift-localizing-transformations/" />
-    <id>maroon.github.io/posts/2018/11/08/swift-localizing-transformations/</id>
+    <title>Localizing Transformations in Swift</title>
+    <link href="maroon.github.io/posts/2018/11/08/localizing-transformations-in-swift/" />
+    <id>maroon.github.io/posts/2018/11/08/localizing-transformations-in-swift/</id>
     <published>2018-11-08T00:00:00Z</published>
     <updated>2018-11-08T00:00:00Z</updated>
     <summary type="html"><![CDATA[<p>The other day I was dealing with <code>CATransform3D</code> and found prototyping animations with it to be rather cumbersome. It wasn’t that the animations were difficult, or even hard to understand, rather it was that I found myself with far more clutter than I could keep track of. Simply rotating two views around a center point became tedious as both required slightly different variations of one another and thus were polluting the namespace with overlapping variables. Variables that I’d have to reassign, mutate, or name as one-offs. Creating a function was a bit over-the-top as I was still playing with ideas; I didn’t want anything concrete, nor did I want to waste time working out a common abstraction.</p>
