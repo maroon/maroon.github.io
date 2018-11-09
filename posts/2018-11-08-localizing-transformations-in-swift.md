@@ -1,5 +1,5 @@
 ---
-title: Swift Localizing Transformations
+title: Localizing Transformations in Swift
 date: 2018-11-08 13:13:03 -0600
 tags: swift
 ---
