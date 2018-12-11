@@ -6,7 +6,7 @@ tags: haskell, hakyll
 
 When it comes time to deploy a Hakyll project using a service such as GitHub Pages, there is a tutorial [just for that.](https://jaspervdj.be/hakyll/tutorials/github-pages-tutorial.html)
 
-Of course I wouldn't be writing this if it had worked for me. I suspected it might not work out when I saw the files being copied between branches. For most, this solution may work without an issue. For myself, it was a constant source of pain. During the design phase of my project I realized that there should never be a reason to have the static web content follow the same flow of my development branch. It felt odd to have two disparate designs inhabiting the same path. To facilitate this design I created the `master` as an orphaned branch.
+Of course I wouldn't be writing this if it had worked for me. I suspected it might not work out when I saw the files being copied between branches. For most, this solution may work without an issue. For myself, it was a constant source of pain. During the design phase of my project I realized that there should never be a reason to have the static web content follow the same flow of my development branch. It felt odd to have two disparate patterns inhabiting the same path. To facilitate this behavior I created the `master` as an orphaned branch.
 
 Because of this design decision, the helper script wouldn't play nicely with the differences between branches. I had to update the `master`'s `.gitignore` file and adjust the `rsync` command to remove the unwanted files that remained during any branch checkouts.
 
