@@ -5,16 +5,16 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Home</title>
+  <title>Deploying Static Content with Hakyll</title>
 
-  <link rel="stylesheet" href="./assets/main.css">
+  <link rel="stylesheet" href="../../../../../assets/main.css">
 </head>
 
   
   <body>
     <header class="site-header">
   <div class="wrapper">
-    <a class="site-title " href="./">Maroon</a>
+    <a class="site-title  small-title " href="../../../../../">Maroon</a>
   </div>
 </header>
 
@@ -23,49 +23,56 @@
 
     <main class="page-content">
       <div class="wrapper">
-        <div class="home">
-  <ul class="posts">
-  
-    <li>
-      <a class="post-link" href="./posts/2018/12/11/deploying-static-content-with-hakyll/">Deploying Static Content with Hakyll</a>
-      <span class="post-date">Dec 11, 2018</span>
-    </li>
-  
-    <li>
-      <a class="post-link" href="./posts/2018/11/08/localizing-transformations-in-swift/">Localizing Transformations in Swift</a>
-      <span class="post-date">Nov  8, 2018</span>
-    </li>
-  
-    <li>
-      <a class="post-link" href="./posts/2018/10/02/hakyll-routes/">Hakyll Routes</a>
-      <span class="post-date">Oct  2, 2018</span>
-    </li>
-  
-    <li>
-      <a class="post-link" href="./posts/2018/08/31/hakyll-sass-dependency/">Hakyll Sass Dependency</a>
-      <span class="post-date">Aug 31, 2018</span>
-    </li>
-  
-    <li>
-      <a class="post-link" href="./posts/2017/10/14/swift-reusable-codable-structures/">Swift 4 Reusable Codable Structures</a>
-      <span class="post-date">Oct 14, 2017</span>
-    </li>
-  
-    <li>
-      <a class="post-link" href="./posts/2016/10/31/swift-package-manager-and-generics/">Swift Package Manager and Generics</a>
-      <span class="post-date">Oct 31, 2016</span>
-    </li>
-  
-</ul>
-
-
-  
+        <div class="page-header">
+  <div class="wrapper">
+    <h1>Deploying Static Content with Hakyll</h1>
+  </div>
 </div>
+
+
+<p>When it comes time to deploy a Hakyll project using a service such as GitHub Pages, there is a tutorial <a href="https://jaspervdj.be/hakyll/tutorials/github-pages-tutorial.html">just for that.</a></p>
+<p>Of course I wouldn’t be writing this if it had worked for me. I suspected it might not work out when I saw the files being copied between branches. For most, this solution may work without an issue. For myself, it was a constant source of pain. During the design phase of my project I realized that there should never be a reason to have the static web content follow the same flow of my development branch. It felt odd to have two disparate designs inhabiting the same path. To facilitate this design I created the <code>master</code> as an orphaned branch.</p>
+<p>Because of this design decision, the helper script wouldn’t play nicely with the differences between branches. I had to update the <code>master</code>’s <code>.gitignore</code> file and adjust the <code>rsync</code> command to remove the unwanted files that remained during any branch checkouts.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode zsh"><code class="sourceCode zsh"><a class="sourceLine" id="cb1-1" title="1">rsync -a --filter=<span class="st">'P _site/'</span>       <span class="kw">\</span></a>
+<a class="sourceLine" id="cb1-2" title="2">         --filter=<span class="st">'P _cache/'</span>      <span class="kw">\</span></a>
+<a class="sourceLine" id="cb1-3" title="3">         --filter=<span class="st">'P .git/'</span>        <span class="kw">\</span></a>
+<a class="sourceLine" id="cb1-4" title="4">         --filter=<span class="st">'P .gitignore'</span>   <span class="kw">\</span></a>
+<a class="sourceLine" id="cb1-5" title="5">         --delete-excluded         <span class="kw">\</span></a>
+<a class="sourceLine" id="cb1-6" title="6">         _site/ <span class="kw">.</span></a></code></pre></div>
+<p>This is an abridged version of the <code>rsync</code> necessary to achieve what I wanted. It is important to note that there are changes to the command that caused additional side effects which are not present within the tutorial link above.</p>
+<p>When using the <code>rsync</code> command from the tutorial I noticed several of my development files would “leak” over to the <code>master</code> branch, which I did not want. One option was to change the <code>.gitignore</code> file within the <code>master</code> branch to exclude these development related files. The problem that I faced was that some structures, such as the <code>post</code> directory, were shared between the <code>master</code> and development branches and could potentially require complex exclusion patterns. Therefore, I chose a different option: I instead decided to modify the <code>rsync</code> command in the deployment script since such structures would be overridden during its execution.</p>
+<p>Obviously this became increasingly painful to maintain as the site grew in complexity. In addition to the script’s frailty, I often had to combat data loss when I failed to append additional filter commands for new files or directories. The script did hold together while I deployed the first few updates to the site. Once I was satisfied with how the site worked, I turned my attention to creating a better deployment solution for myself.</p>
+<p><code>git</code> has a command called <code>worktree</code> that is defined as allowing the management of multiple working trees attached to the same repository. This amounts to performing a <code>checkout</code> on a branch which is then placed into a different directory than that of the working directory. As an aside, this is <a href="https://git-scm.com/docs/git-worktree/2.20.0#_bugs">often</a> a fantastic command for avoiding the typical <code>stash</code>/<code>commit</code>/<code>rebase</code> necessary to get the working directory back to its previous state after an emergency branch change.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode zsh"><code class="sourceCode zsh"><a class="sourceLine" id="cb2-1" title="1">git worktree remove -f _master</a>
+<a class="sourceLine" id="cb2-2" title="2"></a>
+<a class="sourceLine" id="cb2-3" title="3">git stash -u</a>
+<a class="sourceLine" id="cb2-4" title="4">git checkout devel</a>
+<a class="sourceLine" id="cb2-5" title="5">./scripts/rebuild_site.sh</a>
+<a class="sourceLine" id="cb2-6" title="6"></a>
+<a class="sourceLine" id="cb2-7" title="7">git worktree add _master master</a>
+<a class="sourceLine" id="cb2-8" title="8">git fetch --all</a>
+<a class="sourceLine" id="cb2-9" title="9"><span class="kw">(cd</span> _master <span class="kw">&amp;&amp;</span> git merge --ff-only<span class="kw">)</span></a>
+<a class="sourceLine" id="cb2-10" title="10"></a>
+<a class="sourceLine" id="cb2-11" title="11">rsync -a _site/ _master/</a>
+<a class="sourceLine" id="cb2-12" title="12"></a>
+<a class="sourceLine" id="cb2-13" title="13"><span class="kw">(cd</span> _master <span class="kw">&amp;&amp;</span> git add --all <span class="kw">&amp;&amp;</span> git commit -m <span class="st">&quot;</span><span class="ot">$1</span><span class="st">&quot;</span><span class="kw">)</span></a>
+<a class="sourceLine" id="cb2-14" title="14"></a>
+<a class="sourceLine" id="cb2-15" title="15">git worktree remove -f _master</a></code></pre></div>
+<p>Here is the core of the deployment script I came up with. Depending on workflow requirements some modifications to fetching and fast-forwarding might be necessary. Keep in mind that I haven’t had a reason to test this on a non-orphaned Hakyll project, although I would imagine that it should work in a similar fashion to the tutorial linked herein.</p>
+<p>First it ensures that no work tree exists within the <code>_master</code> directory; if there is, any unsaved changes within the directory are lost. The steps following that are pretty straightforward: stash all changes, checkout the development branch, and preform a rebuild of the static web content. After that the <code>worktree</code> command is leveraged: it creates a working tree of the <code>master</code> branch inside the <code>_master</code> directory. The latest remote changes are fetched and the local <code>master</code> repository is fast-forwarded. It then issues an <code>rsync</code> command that copies the static web content contained within the <code>_site</code> directory into the <code>_master</code> directory. All the changes within <code>_master</code> are then staged and committed. Finally, the working tree is removed, leaving the development branch in a clean state and any unsaved changes at the top of the stash.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode zsh"><code class="sourceCode zsh"><a class="sourceLine" id="cb3-1" title="1">→ ./scripts/deploy.sh <span class="st">&quot;Commit message goes here!&quot;</span></a></code></pre></div>
+<p>This is an example of a call to the deployment script. Note the argument given to it is passed along as the <code>master</code>’s commit message. After the script has finished I review the changes made to the <code>master</code> branch. If all looks well, I then push those changes to the remote repository.</p>
 
       </div>
     </main>
 
     
+  <div class="page-footer">
+    <div class="wrapper">
+      <span class="post-date">Dec 11, 2018</span>
+    </div>
+  </div>
+
 
 <div class="site-divider"></div>
 
@@ -74,11 +81,11 @@
     <div class="footer-column-wrapper">
       <div class="footer-column footer-site-description">
         Experiments, problems, ideas, and general nonsense.<br />
-        My name is <a href="./about/">Ryan and I like programming.</a>
+        My name is <a href="../../../../../about/">Ryan and I like programming.</a>
       </div>
       <div class="footer-column footer-social-column">
         <ul class="social-list">
-          <li><a class="social-link" href="./feed.xml">
+          <li><a class="social-link" href="../../../../../feed.xml">
   <span class="social-svg"><?xml version="1.0" ?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg enable-background="new 0 0 50 50" id="Layer_1" version="1.1" viewBox="0 0 50 50" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="_x2E__x29__x29_"><circle cx="18.5" cy="31.5" fill="#F2890A" id="Dot__x28____x29_" r="3.1"></circle><path d="M15.4,11.5v3.8c10.6,0,19.2,8.6,19.2,19.2h3.8C38.5,21.8,28.2,11.5,15.4,11.5z" fill="#F2890A" id="Line__x29__1_"></path><path d="M15.4,19.2V23C21.8,23,27,28.2,27,34.6h3.8C30.8,26.1,23.9,19.2,15.4,19.2z" fill="#F2890A" id="Line__x29_"></path></g><path d="M25,1C11.7,1,1,11.7,1,25s10.7,24,24,24s24-10.7,24-24S38.3,1,25,1z M25,44C14.5,44,6,35.5,6,25S14.5,6,25,6  s19,8.5,19,19S35.5,44,25,44z" fill="#F2890A"></path></svg></span>
   <span class="social-text">Subscribe</span>
 </a>
