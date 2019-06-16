@@ -46,7 +46,7 @@ let f: (CATransform3D) -> CATransform3D = { transform in
 }
 ```
 
-That's a fine start, but there is a problem: I still would have to mess with intermediary variables. I couldn't just tell the closure that I wanted to mutate the variable `transform`. [Rest in peace, my sweet prince.](https://github.com/apple/swift-evolution/blob/master/proposals/0003-remove-var-parameters.md) I'd have to create a new variable that was mutable within the scope of the closure.
+That's a fine start, but there is a problem: I would still have to mess with intermediary variables. I couldn't just tell the closure that I wanted to mutate the variable `transform`. [Rest in peace, my sweet prince.](https://github.com/apple/swift-evolution/blob/master/proposals/0003-remove-var-parameters.md) I'd have to create a new variable that was mutable within the scope of the closure.
 
 ``` swift
 let f: (CATransform3D) -> CATransform3D = { transform in
