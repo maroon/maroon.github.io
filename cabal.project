@@ -1,0 +1,2 @@
+packages: maroon.cabal
+constraints: hakyll +checkExternal +previewServer +usePandoc +watchServer
