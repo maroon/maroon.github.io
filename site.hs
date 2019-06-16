@@ -185,7 +185,7 @@ indexRoute =
   setExtension "html"
 
 
--- Pagination  -----------------------------------------------------------------
+-- Pagination ------------------------------------------------------------------
 yearForIdentifier :: (MonadMetadata m, Num a) => Identifier -> m a
 yearForIdentifier i = do
   time <- getItemUTC defaultTimeLocale i
