@@ -10,10 +10,10 @@ It was then that I found myself longing for days where I could create a new scop
 
 What I wanted was simple: a scope operator. The problem is that I have no way of representing that within the confines of the language. So what was I _really_ after?
 
-  1. I would like semi-local variables that overlap in name, but don't conflict and can remain immutable.
-  2. I want to deal with a convenient variable name rather than something like `view.layer.transform`.
-  3. I would like not to worry about an intermediary variable to assign the mutated value to.
-  4. I want to be able to specify a scope without creating new function definitions everywhere. 
+  1. Semi-local variables that overlap in name, don't conflict, and can remain immutable.
+  2. Convenient variable names rather than cumbersome ones like `view.layer.transform`.
+  3. No intermediary variables to assign the mutated value to.
+  4. Specify a scope without creating new function definitions everywhere. 
 
 The first item can be a little confusing for those that haven't run into C scopes before. I'm going to express it here in Objective-C.
 
