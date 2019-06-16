@@ -50,8 +50,8 @@ div > pre {
 
   @extend %code-block;
 
-  > code > a {
-    padding: 0;
+  > code > * > a {
+    display: none;
   }
 }
 
