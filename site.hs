@@ -110,24 +110,24 @@ runHakyll config = hakyll $ do
 
 -- YAML ------------------------------------------------------------------------
 data Config = Config
-  { title :: String
+  { title       :: String
   , description :: String
-  , baseUrl :: String
-  , display :: Display
-  , social :: Social
+  , baseUrl     :: String
+  , display     :: Display
+  , social      :: Social
   } deriving (Eq, Show)
 
 data Display = Display
-  { showFeed :: Bool
-  , showEmail :: Bool
-  , showGithub :: Bool
+  { showFeed    :: Bool
+  , showEmail   :: Bool
+  , showGithub  :: Bool
   , showTwitter :: Bool
   } deriving (Eq, Show)
 
 data Social = Social
-  { author :: String
-  , email :: String
-  , github :: Maybe String
+  { author  :: String
+  , email   :: String
+  , github  :: Maybe String
   , twitter :: Maybe String
   } deriving (Eq, Show)
 
