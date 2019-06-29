@@ -3,6 +3,7 @@ description: Experiments, problems, ideas, and general nonsense.
 base_url: maroon.github.io
 
 display:
+  posts_per_page: 10
   feed: true
   email: false
   github: true

@@ -1,16 +1,15 @@
---------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
 
 import Archive
-import Config
 import Contexts
+import Config (Config, loadConfiguration)
 import Data.Monoid ((<>))
 import Feed
 import Hakyll
 import Routes
 import ScssCompiler
+import qualified Config as C (display, postsPerPage)
 
---------------------------------------------------------------------------------
 main :: IO ()
 main = loadConfiguration >>= runHakyll
 
@@ -18,6 +17,7 @@ runHakyll :: Config -> IO ()
 runHakyll config = hakyll $ do
   let postCtx = postContext config
   let metaCtx = metaContext config
+  let postsPerPage = C.postsPerPage . C.display $ config
 
   match "assets/**" $ do
     route idRoute
@@ -98,8 +98,3 @@ runHakyll config = hakyll $ do
         =<< loadAllSnapshots "posts/*" "content"
 
       renderAtom (feedConfig config) feedCtx posts
-
-
--- Values ----------------------------------------------------------------------
-postsPerPage :: Int
-postsPerPage = 10

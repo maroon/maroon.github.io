@@ -19,10 +19,11 @@ data Config = Config
   } deriving (Eq, Show)
 
 data Display = Display
-  { showFeed    :: Bool
-  , showEmail   :: Bool
-  , showGithub  :: Bool
-  , showTwitter :: Bool
+  { postsPerPage :: Int
+  , showFeed     :: Bool
+  , showEmail    :: Bool
+  , showGithub   :: Bool
+  , showTwitter  :: Bool
   } deriving (Eq, Show)
 
 data Social = Social
@@ -43,7 +44,8 @@ instance FromJSON Config where
 
 instance FromJSON Display where
   parseJSON (Object v) = Display
-    <$> v .: "feed"
+    <$> v .: "posts_per_page"
+    <*> v .: "feed"
     <*> v .: "email"
     <*> v .: "github"
     <*> v .: "twitter"
