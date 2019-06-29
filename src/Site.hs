@@ -7,8 +7,8 @@ import Contexts
 import Data.Monoid ((<>))
 import Feed
 import Hakyll
+import Routes
 import ScssCompiler
-import System.FilePath ((</>), dropExtension)
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -103,15 +103,3 @@ runHakyll config = hakyll $ do
 -- Values ----------------------------------------------------------------------
 postsPerPage :: Int
 postsPerPage = 10
-
-
--- Routes ----------------------------------------------------------------------
-dateRoute :: Routes
-dateRoute =
-  gsubRoute "/[0-9]{4}-[0-9]{2}-[0-9]{2}-" (replaceAll "-" $ const "/") `composeRoutes`
-  indexRoute
-
-indexRoute :: Routes
-indexRoute =
-  customRoute ((</> "index") . dropExtension . toFilePath) `composeRoutes`
-  setExtension "html"

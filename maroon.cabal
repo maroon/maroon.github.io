@@ -21,4 +21,5 @@ executable site
     , Config
     , Contexts
     , Feed
+    , Routes
     , ScssCompiler
