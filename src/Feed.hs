@@ -7,9 +7,9 @@ import Hakyll
 
 feedConfig :: Config -> FeedConfiguration
 feedConfig config = FeedConfiguration
-  { feedTitle = title config
+  { feedTitle       = title config
   , feedDescription = description config
-  , feedRoot = baseUrl config
-  , feedAuthorName = author . social $ config
+  , feedRoot        = baseUrl config
+  , feedAuthorName  = author . social $ config
   , feedAuthorEmail = email . social $ config
   }
