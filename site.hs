@@ -138,6 +138,7 @@ instance FromJSON Config where
     <*> v .: "base_url"
     <*> v .: "display"
     <*> v .: "social"
+  parseJSON _ = undefined
 
 instance FromJSON Display where
   parseJSON (Object v) = Display
@@ -145,6 +146,7 @@ instance FromJSON Display where
     <*> v .: "email"
     <*> v .: "github"
     <*> v .: "twitter"
+  parseJSON _ = undefined
 
 instance FromJSON Social where
   parseJSON (Object v) = Social
@@ -152,6 +154,7 @@ instance FromJSON Social where
     <*> v .:  "email"
     <*> v .:? "github"
     <*> v .:? "twitter"
+  parseJSON _ = undefined
 
 loadConfiguration :: IO Config
 loadConfiguration = loadYamlSettings ["config.yaml"] [] useEnv
