@@ -34,30 +34,30 @@
 <p>It was then that I found myself longing for days where I could create a new scope in C and be done with it. I began wondering what exactly that would look like in Swift. How would I go about creating something like that? I knew that I couldn’t just write an extension for <code>Any</code> as it is a non-nominal type, nor could I just throw it onto <code>AnyObject</code> because that would exclude <code>struct</code> types.</p>
 <p>What I wanted was simple: a scope operator. The problem is that I have no way of representing that within the confines of the language. So what was I <em>really</em> after?</p>
 <ol type="1">
-<li>I would like semi-local variables that overlap in name, but don’t conflict and can remain immutable.</li>
-<li>I want to deal with a convenient variable name rather than something like <code>view.layer.transform</code>.</li>
-<li>I would like not to worry about an intermediary variable to assign the mutated value to.</li>
-<li>I want to be able to specify a scope without creating new function definitions everywhere.</li>
+<li>Semi-local variables that overlap in name, don’t conflict, and can remain immutable.</li>
+<li>Convenient variable names rather than cumbersome ones like <code>view.layer.transform</code>.</li>
+<li>No intermediary variables to assign the mutated value to.</li>
+<li>Specify a scope without creating new function definitions everywhere.</li>
 </ol>
 <p>The first item can be a little confusing for those that haven’t run into C scopes before. I’m going to express it here in Objective-C.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode objectivec"><code class="sourceCode objectivec"><a class="sourceLine" id="cb1-1" title="1">{</a>
-<a class="sourceLine" id="cb1-2" title="2">  CGPoint point = CGPointMake(<span class="dv">5</span>, <span class="dv">12</span>);</a>
-<a class="sourceLine" id="cb1-3" title="3">  {</a>
-<a class="sourceLine" id="cb1-4" title="4">    CGPoint point = CGPointMake(<span class="dv">44</span>, <span class="dv">-11</span>);</a>
-<a class="sourceLine" id="cb1-5" title="5">    NSLog(<span class="st">@&quot;%@&quot;</span>, NSStringFromCGPoint(point));</a>
-<a class="sourceLine" id="cb1-6" title="6">  }</a>
-<a class="sourceLine" id="cb1-7" title="7">  NSLog(<span class="st">@&quot;%@&quot;</span>, NSStringFromCGPoint(point));</a>
-<a class="sourceLine" id="cb1-8" title="8">}</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode objectivec"><code class="sourceCode objectivec"><span id="cb1-1"><a href="#cb1-1"></a>{</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  CGPoint point = CGPointMake(<span class="dv">5</span>, <span class="dv">12</span>);</span>
+<span id="cb1-3"><a href="#cb1-3"></a>  {</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    CGPoint point = CGPointMake(<span class="dv">44</span>, <span class="dv">-11</span>);</span>
+<span id="cb1-5"><a href="#cb1-5"></a>    NSLog(<span class="st">@&quot;%@&quot;</span>, NSStringFromCGPoint(point));</span>
+<span id="cb1-6"><a href="#cb1-6"></a>  }</span>
+<span id="cb1-7"><a href="#cb1-7"></a>  NSLog(<span class="st">@&quot;%@&quot;</span>, NSStringFromCGPoint(point));</span>
+<span id="cb1-8"><a href="#cb1-8"></a>}</span></code></pre></div>
 <p>Outputs:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode objectivec"><code class="sourceCode objectivec"><a class="sourceLine" id="cb2-1" title="1">{<span class="dv">44</span>, <span class="dv">-11</span>}</a>
-<a class="sourceLine" id="cb2-2" title="2">{<span class="dv">5</span>, <span class="dv">12</span>}</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode objectivec"><code class="sourceCode objectivec"><span id="cb2-1"><a href="#cb2-1"></a>{<span class="dv">44</span>, <span class="dv">-11</span>}</span>
+<span id="cb2-2"><a href="#cb2-2"></a>{<span class="dv">5</span>, <span class="dv">12</span>}</span></code></pre></div>
 <p>For me, being able to rapidly scope out details like this is an immeasurably powerful tool.</p>
 <p>I started toying with the shape of these ideas by writing a function that would take a value and transform it.</p>
 <pre class="swift"><code>let f: (CATransform3D) -&gt; CATransform3D = { transform in
   // Mutate
   return transform
 }</code></pre>
-<p>That’s a fine start, but there is a problem: I still would have to mess with intermediary variables. I couldn’t just tell the closure that I wanted to mutate the variable <code>transform</code>. <a href="https://github.com/apple/swift-evolution/blob/master/proposals/0003-remove-var-parameters.md">Rest in peace, my sweet prince.</a> I’d have to create a new variable that was mutable within the scope of the closure.</p>
+<p>That’s a fine start, but there is a problem: I would still have to mess with intermediary variables. I couldn’t just tell the closure that I wanted to mutate the variable <code>transform</code>. <a href="https://github.com/apple/swift-evolution/blob/master/proposals/0003-remove-var-parameters.md">Rest in peace, my sweet prince.</a> I’d have to create a new variable that was mutable within the scope of the closure.</p>
 <pre class="swift"><code>let f: (CATransform3D) -&gt; CATransform3D = { transform in
   var transform = transform
   // Mutate

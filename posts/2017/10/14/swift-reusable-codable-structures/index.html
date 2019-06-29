@@ -32,17 +32,17 @@
 
 <p>There is much pomp and circumstance over the new Swift <code>Codable</code> protocol. After indulging myself in the documentation and examples for a few hours, I couldn’t help but feel there was a glaring omission: reusable structures.</p>
 <p>In several projects that I’ve worked on I have found a need for a common contract between responses. For instance, I may want to know if the request had a successful operation–– and if not, perhaps a message informing me what the server had to say about it. This essentially creates a wrapper around the otherwise simple payload structure. To make the example a bit more interesting I’ll convolute the common data with another wrapper around it. Thus, the payload will be contained within a result structure which is confined to a frivolous wrapper, like so:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode javascript"><code class="sourceCode javascript"><a class="sourceLine" id="cb1-1" title="1"><span class="op">{</span></a>
-<a class="sourceLine" id="cb1-2" title="2">  <span class="st">&quot;response&quot;</span><span class="op">:</span> <span class="op">{</span></a>
-<a class="sourceLine" id="cb1-3" title="3">    <span class="st">&quot;successful&quot;</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span></a>
-<a class="sourceLine" id="cb1-4" title="4">    <span class="st">&quot;message&quot;</span><span class="op">:</span> <span class="kw">null</span><span class="op">,</span></a>
-<a class="sourceLine" id="cb1-5" title="5">    <span class="st">&quot;payload&quot;</span><span class="op">:</span> <span class="op">{</span></a>
-<a class="sourceLine" id="cb1-6" title="6">      <span class="st">&quot;first_name&quot;</span><span class="op">:</span> <span class="st">&quot;Ryan&quot;</span><span class="op">,</span></a>
-<a class="sourceLine" id="cb1-7" title="7">      <span class="st">&quot;last_name&quot;</span><span class="op">:</span> <span class="st">&quot;Maroon&quot;</span><span class="op">,</span></a>
-<a class="sourceLine" id="cb1-8" title="8">      <span class="st">&quot;hobby&quot;</span><span class="op">:</span> <span class="st">&quot;Programming&quot;</span></a>
-<a class="sourceLine" id="cb1-9" title="9">    <span class="op">}</span></a>
-<a class="sourceLine" id="cb1-10" title="10">  <span class="op">}</span></a>
-<a class="sourceLine" id="cb1-11" title="11"><span class="op">}</span></a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1"></a><span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a>  <span class="st">&quot;response&quot;</span><span class="op">:</span> <span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>    <span class="st">&quot;successful&quot;</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a>    <span class="st">&quot;message&quot;</span><span class="op">:</span> <span class="kw">null</span><span class="op">,</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a>    <span class="st">&quot;payload&quot;</span><span class="op">:</span> <span class="op">{</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>      <span class="st">&quot;first_name&quot;</span><span class="op">:</span> <span class="st">&quot;Ryan&quot;</span><span class="op">,</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a>      <span class="st">&quot;last_name&quot;</span><span class="op">:</span> <span class="st">&quot;Maroon&quot;</span><span class="op">,</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>      <span class="st">&quot;hobby&quot;</span><span class="op">:</span> <span class="st">&quot;Programming&quot;</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a>    <span class="op">}</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a>  <span class="op">}</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="op">}</span></span></code></pre></div>
 <p>Rather than constructing a very elaborate decoder path or rewriting the same boilerplate code for each structure, such behavior can be accommodated with the use of generics.</p>
 <pre class="swift"><code>struct Response&lt;T: Codable&gt;: Codable {
   let result: Result&lt;T&gt;
@@ -58,11 +58,11 @@ struct Result&lt;T: Codable&gt;: Codable {
   let payload: T
 }</code></pre>
 <p>Swift will now parse any payload data so long as it conforms to the <code>Codable</code> protocol. We’ll take a look at another example of this in a bit. First, let’s take a look at the response payload representing the person data set.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode javascript"><code class="sourceCode javascript"><a class="sourceLine" id="cb3-1" title="1"><span class="op">{</span></a>
-<a class="sourceLine" id="cb3-2" title="2">  <span class="st">&quot;first_name&quot;</span><span class="op">:</span> <span class="st">&quot;Ryan&quot;</span><span class="op">,</span></a>
-<a class="sourceLine" id="cb3-3" title="3">  <span class="st">&quot;last_name&quot;</span><span class="op">:</span> <span class="st">&quot;Maroon&quot;</span><span class="op">,</span></a>
-<a class="sourceLine" id="cb3-4" title="4">  <span class="st">&quot;hobby&quot;</span><span class="op">:</span> <span class="st">&quot;Programming&quot;</span></a>
-<a class="sourceLine" id="cb3-5" title="5"><span class="op">}</span></a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1"></a><span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="st">&quot;first_name&quot;</span><span class="op">:</span> <span class="st">&quot;Ryan&quot;</span><span class="op">,</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a>  <span class="st">&quot;last_name&quot;</span><span class="op">:</span> <span class="st">&quot;Maroon&quot;</span><span class="op">,</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a>  <span class="st">&quot;hobby&quot;</span><span class="op">:</span> <span class="st">&quot;Programming&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="op">}</span></span></code></pre></div>
 <p>The structure for such a response would then be described as such:</p>
 <pre class="swift"><code>struct Person: Codable {
   let firstName: String
@@ -79,11 +79,11 @@ struct Result&lt;T: Codable&gt;: Codable {
 <pre class="swift"><code>let decoder = JSONDecoder()
 let payload = try! decoder.decode(Response&lt;Person.self&gt;, from: responseData)</code></pre>
 <p>That’s it! Another example, as mentioned earlier, would be to utilize an array which also conforms to <code>Codable</code>. Assuming this is the payload from the server:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode javascript"><code class="sourceCode javascript"><a class="sourceLine" id="cb6-1" title="1">[</a>
-<a class="sourceLine" id="cb6-2" title="2">  <span class="st">&quot;Haskell&quot;</span><span class="op">,</span></a>
-<a class="sourceLine" id="cb6-3" title="3">  <span class="st">&quot;Elixir&quot;</span><span class="op">,</span></a>
-<a class="sourceLine" id="cb6-4" title="4">  <span class="st">&quot;Elm&quot;</span><span class="op">,</span></a>
-<a class="sourceLine" id="cb6-5" title="5">]</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1"></a>[</span>
+<span id="cb6-2"><a href="#cb6-2"></a>  <span class="st">&quot;Haskell&quot;</span><span class="op">,</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>  <span class="st">&quot;Elixir&quot;</span><span class="op">,</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a>  <span class="st">&quot;Elm&quot;</span><span class="op">,</span></span>
+<span id="cb6-5"><a href="#cb6-5"></a>]</span></code></pre></div>
 <p>The decoder call would then be expressed as:</p>
 <pre class="swift"><code>let payload = try! decoder.decode(Response&lt;[String]&gt;.self, from: responseData)</code></pre>
 

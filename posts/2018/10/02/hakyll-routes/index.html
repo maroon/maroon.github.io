@@ -32,23 +32,23 @@
 
 <p>During the move to Hakyll, I decided it would be best to reflect on the slugs used within the site. The idea would be to strip off any HTML matter from the slug, making the slug itself the star of the show. The end result would look something like <code>/posts/yyyy/mm/dd/post-name/</code> or <code>/page-name/</code>.</p>
 <p>I would need a base route to begin this process; a way to transmogrify all pages so that they had an <code>index.html</code> ending. From there I could build up more complex routes that were specific to different domains. Hakyll made composing routes very simple by providing a function aptly named <code>composeRoutes</code>.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1"><span class="ot">indexRoute ::</span> <span class="dt">Routes</span></a>
-<a class="sourceLine" id="cb1-2" title="2">indexRoute <span class="fu">=</span></a>
-<a class="sourceLine" id="cb1-3" title="3">  customRoute ((<span class="fu">&lt;/&gt;</span> <span class="st">&quot;index&quot;</span>) <span class="fu">.</span> dropExtension <span class="fu">.</span> toFilePath) <span class="ot">`composeRoutes`</span></a>
-<a class="sourceLine" id="cb1-4" title="4">  setExtension <span class="st">&quot;html&quot;</span></a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1"></a><span class="ot">indexRoute ::</span> <span class="dt">Routes</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a>indexRoute <span class="ot">=</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>  customRoute ((<span class="op">&lt;/&gt;</span> <span class="st">&quot;index&quot;</span>) <span class="op">.</span> dropExtension <span class="op">.</span> toFilePath) <span class="ot">`composeRoutes`</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a>  setExtension <span class="st">&quot;html&quot;</span></span></code></pre></div>
 <p>This takes whatever the file path of the identifier is, drops its extension, and appends <code>/index.html</code> to it. This gave me exactly what I was looking for and is now the route through which all others will pass. I then moved on to the heart of the system: posts.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode zsh"><code class="sourceCode zsh"><a class="sourceLine" id="cb2-1" title="1">→ <span class="kw">ls</span> -1p posts/</a>
-<a class="sourceLine" id="cb2-2" title="2">2016-10-31-swift-package-manager-and-generics.md</a>
-<a class="sourceLine" id="cb2-3" title="3">2017-10-14-swift-reusable-codable-structures.md</a>
-<a class="sourceLine" id="cb2-4" title="4">2018-08-31-hakyll-sass-dependency.md</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb2-1"><a href="#cb2-1"></a>→ <span class="kw">ls</span> -1p posts/</span>
+<span id="cb2-2"><a href="#cb2-2"></a>2016-10-31-swift-package-manager-and-generics.md</span>
+<span id="cb2-3"><a href="#cb2-3"></a>2017-10-14-swift-reusable-codable-structures.md</span>
+<span id="cb2-4"><a href="#cb2-4"></a>2018-08-31-hakyll-sass-dependency.md</span></code></pre></div>
 <p>Posts within the site adhere to a very simple date-title format. <code>gsubRoute</code> can be used to match against this pattern. By feeding it the date pattern and a function that replaces the dashes with directory separators, the desired directory structure is produced.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb3-1" title="1"><span class="ot">dateRoute ::</span> <span class="dt">Routes</span></a>
-<a class="sourceLine" id="cb3-2" title="2">dateRoute <span class="fu">=</span></a>
-<a class="sourceLine" id="cb3-3" title="3">  gsubRoute <span class="st">&quot;/[0-9]{4}-[0-9]{2}-[0-9]{2}-&quot;</span> (replaceAll <span class="st">&quot;-&quot;</span> <span class="fu">$</span> <span class="fu">const</span> <span class="st">&quot;/&quot;</span>) <span class="ot">`composeRoutes`</span></a>
-<a class="sourceLine" id="cb3-4" title="4">  indexRoute</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1"></a><span class="ot">dateRoute ::</span> <span class="dt">Routes</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>dateRoute <span class="ot">=</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a>  gsubRoute <span class="st">&quot;/[0-9]{4}-[0-9]{2}-[0-9]{2}-&quot;</span> (replaceAll <span class="st">&quot;-&quot;</span> <span class="op">$</span> <span class="fu">const</span> <span class="st">&quot;/&quot;</span>) <span class="ot">`composeRoutes`</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a>  indexRoute</span></code></pre></div>
 <p>This runs a regex over an identifier, replacing the post file format with an isomorphic directory structure. Note the composition with <code>indexRoute</code> above, which yields the final post slug: <code>/yyyy/mm/dd/post-name/index.html</code>.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1">match <span class="st">&quot;posts/*&quot;</span> <span class="fu">$</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb4-2" title="2">  route dateRoute</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1"></a>match <span class="st">&quot;posts/*&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>  route dateRoute</span></code></pre></div>
 <p>The last step is to add or update a <code>Rules</code> structure with the given route, and that’s it!</p>
 
       </div>

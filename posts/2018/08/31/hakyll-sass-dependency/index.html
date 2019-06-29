@@ -31,59 +31,59 @@
 
 
 <p>One of the very first adventures I had in Hakyll was coming up with a way to get the Sass compiler working with it. Some time ago I had published a <a href="https://github.com/maroon/novella">theme for Jekyll</a>, which I had decided I wanted to keep around for this blog. I simply created a <code>scss</code> directory which housed the theme’s files.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode zsh"><code class="sourceCode zsh"><a class="sourceLine" id="cb1-1" title="1">→ <span class="kw">ls</span> -1p scss/</a>
-<a class="sourceLine" id="cb1-2" title="2">novella/</a>
-<a class="sourceLine" id="cb1-3" title="3">novella.scss</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb1-1"><a href="#cb1-1"></a>→ <span class="kw">ls</span> -1p scss/</span>
+<span id="cb1-2"><a href="#cb1-2"></a>novella/</span>
+<span id="cb1-3"><a href="#cb1-3"></a>novella.scss</span></code></pre></div>
 <p>The solution didn’t require much knowledge of the inner workings of Hakyll. Rather, it was more about knowing how to manipulate the arguments for <code>sass</code>.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" title="1">match <span class="st">&quot;scss/*.scss&quot;</span> <span class="fu">$</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb2-2" title="2">  route <span class="fu">$</span> constRoute <span class="st">&quot;assets/main.css&quot;</span></a>
-<a class="sourceLine" id="cb2-3" title="3">  compile compressScssCompiler</a>
-<a class="sourceLine" id="cb2-4" title="4"></a>
-<a class="sourceLine" id="cb2-5" title="5"><span class="ot">compressScssCompiler ::</span> <span class="dt">Compiler</span> (<span class="dt">Item</span> <span class="dt">String</span>)</a>
-<a class="sourceLine" id="cb2-6" title="6">compressScssCompiler <span class="fu">=</span> withItemBody <span class="fu">$</span> unixFilter <span class="st">&quot;sass&quot;</span> arguments</a>
-<a class="sourceLine" id="cb2-7" title="7">  <span class="kw">where</span></a>
-<a class="sourceLine" id="cb2-8" title="8">    arguments <span class="fu">=</span> [ <span class="st">&quot;-s&quot;</span></a>
-<a class="sourceLine" id="cb2-9" title="9">                , <span class="st">&quot;--scss&quot;</span></a>
-<a class="sourceLine" id="cb2-10" title="10">                , <span class="st">&quot;--style&quot;</span>, <span class="st">&quot;compressed&quot;</span></a>
-<a class="sourceLine" id="cb2-11" title="11">                , <span class="st">&quot;--load-path&quot;</span>, <span class="st">&quot;scss&quot;</span></a>
-<a class="sourceLine" id="cb2-12" title="12">                ]</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1"></a>match <span class="st">&quot;scss/*.scss&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>  route <span class="op">$</span> constRoute <span class="st">&quot;assets/main.css&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a>  compile compressScssCompiler</span>
+<span id="cb2-4"><a href="#cb2-4"></a></span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="ot">compressScssCompiler ::</span> <span class="dt">Compiler</span> (<span class="dt">Item</span> <span class="dt">String</span>)</span>
+<span id="cb2-6"><a href="#cb2-6"></a>compressScssCompiler <span class="ot">=</span> withItemBody <span class="op">$</span> unixFilter <span class="st">&quot;sass&quot;</span> arguments</span>
+<span id="cb2-7"><a href="#cb2-7"></a>  <span class="kw">where</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a>    arguments <span class="ot">=</span> [ <span class="st">&quot;-s&quot;</span></span>
+<span id="cb2-9"><a href="#cb2-9"></a>                , <span class="st">&quot;--scss&quot;</span></span>
+<span id="cb2-10"><a href="#cb2-10"></a>                , <span class="st">&quot;--style&quot;</span>, <span class="st">&quot;compressed&quot;</span></span>
+<span id="cb2-11"><a href="#cb2-11"></a>                , <span class="st">&quot;--load-path&quot;</span>, <span class="st">&quot;scss&quot;</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a>                ]</span></code></pre></div>
 <p>Here I tell it to match any SCSS files within the <code>scss</code> directory, in this case it is only the <code>novella.scss</code> file, and that in turn is passed along to <code>sass</code>. Once <code>sass</code> is done doing its business, Hakyll then outputs the compiled data into <code>assets/main.css</code>.</p>
 <p>It worked wonderfully, so I set about tackling more interesting problems with Hakyll. As work on the blog came to a close, I found myself wanting to tweak some designs within the theme. It felt as though it had accrued some cruft and I didn’t care for some of the previous aesthetic choices I had made.</p>
 <p>While making alterations I discovered that <code>site watch</code> wasn’t observing the changes being made to the theme’s imported files. The previous solution works so long as you make no changes to any imported SCSS files and your directory structure looks a little something like what I had.</p>
 <p>Hakyll was only being told to watch <code>novella.scss</code>, and not the files contained within the <code>novella</code> subdirectory. These conditions made it remarkably unpleasant to work with while frequently iterating and tweaking the design. The seemingly obvious solution would be to use a glob that permits recursion and matching of the inner style sheets.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb3-1" title="1">match <span class="st">&quot;scss/**.scss&quot;</span> <span class="fu">$</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb3-2" title="2">  route <span class="fu">$</span> constRoute <span class="st">&quot;assets/main.css&quot;</span></a>
-<a class="sourceLine" id="cb3-3" title="3">  compile compressScssCompiler</a>
-<a class="sourceLine" id="cb3-4" title="4"></a>
-<a class="sourceLine" id="cb3-5" title="5"><span class="ot">compressScssCompiler ::</span> <span class="dt">Compiler</span> (<span class="dt">Item</span> <span class="dt">String</span>)</a>
-<a class="sourceLine" id="cb3-6" title="6">compressScssCompiler <span class="fu">=</span> withItemBody <span class="fu">$</span> unixFilter <span class="st">&quot;sass&quot;</span> arguments</a>
-<a class="sourceLine" id="cb3-7" title="7">  <span class="kw">where</span></a>
-<a class="sourceLine" id="cb3-8" title="8">    arguments <span class="fu">=</span> [ <span class="st">&quot;-s&quot;</span></a>
-<a class="sourceLine" id="cb3-9" title="9">                , <span class="st">&quot;--scss&quot;</span></a>
-<a class="sourceLine" id="cb3-10" title="10">                , <span class="st">&quot;--style&quot;</span>, <span class="st">&quot;compressed&quot;</span></a>
-<a class="sourceLine" id="cb3-11" title="11">                ]</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1"></a>match <span class="st">&quot;scss/**.scss&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>  route <span class="op">$</span> constRoute <span class="st">&quot;assets/main.css&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a>  compile compressScssCompiler</span>
+<span id="cb3-4"><a href="#cb3-4"></a></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="ot">compressScssCompiler ::</span> <span class="dt">Compiler</span> (<span class="dt">Item</span> <span class="dt">String</span>)</span>
+<span id="cb3-6"><a href="#cb3-6"></a>compressScssCompiler <span class="ot">=</span> withItemBody <span class="op">$</span> unixFilter <span class="st">&quot;sass&quot;</span> arguments</span>
+<span id="cb3-7"><a href="#cb3-7"></a>  <span class="kw">where</span></span>
+<span id="cb3-8"><a href="#cb3-8"></a>    arguments <span class="ot">=</span> [ <span class="st">&quot;-s&quot;</span></span>
+<span id="cb3-9"><a href="#cb3-9"></a>                , <span class="st">&quot;--scss&quot;</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a>                , <span class="st">&quot;--style&quot;</span>, <span class="st">&quot;compressed&quot;</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a>                ]</span></code></pre></div>
 <p>This should work, only so long as there are no file dependencies. In the case of the Novella theme, there are many dependencies that are tied together by a single file.</p>
 <p>After many failed attempts to skirt the issue, I discovered that Hakyll provides a marvellous solution to this very conundrum: <code>rulesExtraDependencies</code>. It ensures that any changes the compiler makes to files matching the specified dependencies are then processed with a follow-up build step. <code>makePatternDependency</code> is responsible for generating a <code>Dependency</code> structure from a given <code>Pattern</code>.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1">match <span class="st">&quot;scss/**.scss&quot;</span> <span class="fu">$</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb4-2" title="2">  compile getResourceString</a>
-<a class="sourceLine" id="cb4-3" title="3"></a>
-<a class="sourceLine" id="cb4-4" title="4">scssDependency <span class="ot">&lt;-</span> makePatternDependency <span class="st">&quot;scss/**.scss&quot;</span></a>
-<a class="sourceLine" id="cb4-5" title="5">rulesExtraDependencies [scssDependency] <span class="fu">$</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb4-6" title="6">  create [<span class="st">&quot;assets/main.css&quot;</span>] <span class="fu">$</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb4-7" title="7">    route idRoute</a>
-<a class="sourceLine" id="cb4-8" title="8">    compile <span class="fu">$</span></a>
-<a class="sourceLine" id="cb4-9" title="9">      loadBody <span class="st">&quot;scss/novella.scss&quot;</span></a>
-<a class="sourceLine" id="cb4-10" title="10">        <span class="fu">&gt;&gt;=</span> makeItem</a>
-<a class="sourceLine" id="cb4-11" title="11">        <span class="fu">&gt;&gt;=</span> scssCompiler</a>
-<a class="sourceLine" id="cb4-12" title="12"></a>
-<a class="sourceLine" id="cb4-13" title="13"><span class="ot">scssCompiler ::</span> <span class="dt">Item</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Compiler</span> (<span class="dt">Item</span> <span class="dt">String</span>)</a>
-<a class="sourceLine" id="cb4-14" title="14">scssCompiler <span class="fu">=</span> withItemBody <span class="fu">$</span> unixFilter <span class="st">&quot;sass&quot;</span> arguments</a>
-<a class="sourceLine" id="cb4-15" title="15">  <span class="kw">where</span></a>
-<a class="sourceLine" id="cb4-16" title="16">    arguments <span class="fu">=</span> [ <span class="st">&quot;-s&quot;</span></a>
-<a class="sourceLine" id="cb4-17" title="17">                , <span class="st">&quot;--scss&quot;</span></a>
-<a class="sourceLine" id="cb4-18" title="18">                , <span class="st">&quot;--style&quot;</span>, <span class="st">&quot;compressed&quot;</span></a>
-<a class="sourceLine" id="cb4-19" title="19">                , <span class="st">&quot;--load-path&quot;</span>, <span class="st">&quot;scss&quot;</span></a>
-<a class="sourceLine" id="cb4-20" title="20">                ]</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1"></a>match <span class="st">&quot;scss/**.scss&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>  compile getResourceString</span>
+<span id="cb4-3"><a href="#cb4-3"></a></span>
+<span id="cb4-4"><a href="#cb4-4"></a>scssDependency <span class="ot">&lt;-</span> makePatternDependency <span class="st">&quot;scss/**.scss&quot;</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a>rulesExtraDependencies [scssDependency] <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a>  create [<span class="st">&quot;assets/main.css&quot;</span>] <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a>    route idRoute</span>
+<span id="cb4-8"><a href="#cb4-8"></a>    compile <span class="op">$</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a>      loadBody <span class="st">&quot;scss/novella.scss&quot;</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a>        <span class="op">&gt;&gt;=</span> makeItem</span>
+<span id="cb4-11"><a href="#cb4-11"></a>        <span class="op">&gt;&gt;=</span> scssCompiler</span>
+<span id="cb4-12"><a href="#cb4-12"></a></span>
+<span id="cb4-13"><a href="#cb4-13"></a><span class="ot">scssCompiler ::</span> <span class="dt">Item</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Compiler</span> (<span class="dt">Item</span> <span class="dt">String</span>)</span>
+<span id="cb4-14"><a href="#cb4-14"></a>scssCompiler <span class="ot">=</span> withItemBody <span class="op">$</span> unixFilter <span class="st">&quot;sass&quot;</span> arguments</span>
+<span id="cb4-15"><a href="#cb4-15"></a>  <span class="kw">where</span></span>
+<span id="cb4-16"><a href="#cb4-16"></a>    arguments <span class="ot">=</span> [ <span class="st">&quot;-s&quot;</span></span>
+<span id="cb4-17"><a href="#cb4-17"></a>                , <span class="st">&quot;--scss&quot;</span></span>
+<span id="cb4-18"><a href="#cb4-18"></a>                , <span class="st">&quot;--style&quot;</span>, <span class="st">&quot;compressed&quot;</span></span>
+<span id="cb4-19"><a href="#cb4-19"></a>                , <span class="st">&quot;--load-path&quot;</span>, <span class="st">&quot;scss&quot;</span></span>
+<span id="cb4-20"><a href="#cb4-20"></a>                ]</span></code></pre></div>
 <p>Now the matcher contains the recursive glob, which is also reflected in the <code>makePatternDependency</code> call, and removes the route call. The compile step changes to retrieve the resource’s contents rather than sending it to <code>sass</code>. This change allows the <code>novella.scss</code> contents to be recalled in the dependency step while skipping over any <code>sass</code> compilations for the imported SCSS files. The dependency step, as just mentioned, recalls the contents of <code>novella.scss</code> and passes it along to <code>sass</code>. Hakyll then takes the output and writes it to <code>assets/main.css</code>.</p>
 <p>Voilà! Hakyll will now update the CSS file whenever the any of the SCSS files are modified.</p>
 
