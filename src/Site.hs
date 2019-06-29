@@ -4,6 +4,7 @@
 import Archive
 import Config
 import Data.Monoid ((<>))
+import Feed
 import Hakyll
 import ScssCompiler
 import System.FilePath ((</>), dropExtension, takeDirectory,
@@ -102,17 +103,6 @@ runHakyll config = hakyll $ do
 -- Values ----------------------------------------------------------------------
 postsPerPage :: Int
 postsPerPage = 10
-
-
--- Feeds -----------------------------------------------------------------------
-feedConfig :: Config -> FeedConfiguration
-feedConfig config = FeedConfiguration
-  { feedTitle = title config
-  , feedDescription = description config
-  , feedRoot = baseUrl config
-  , feedAuthorName = author . social $ config
-  , feedAuthorEmail = email . social $ config
-  }
 
 
 -- Routes ----------------------------------------------------------------------

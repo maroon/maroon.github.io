@@ -19,4 +19,5 @@ executable site
   other-modules:
       Archive
     , Config
+    , Feed
     , ScssCompiler
