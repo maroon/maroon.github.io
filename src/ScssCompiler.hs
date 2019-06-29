@@ -10,6 +10,6 @@ scssCompiler = withItemBody $ unixFilter "sass" arguments
     arguments = [ "-s"
                 , "--scss"
                 , "--style", "compressed"
-                , "--load-path", "scss"
+                , "--load-path", "site/scss"
                 ]
 

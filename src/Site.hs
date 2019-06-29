@@ -19,35 +19,35 @@ runHakyll config = hakyll $ do
   let metaCtx = metaContext config
   let postsPerPage = C.postsPerPage . C.display $ config
 
-  match "assets/**" $ do
+  match "site/assets/**" $ do
     route idRoute
     compile copyFileCompiler
 
-  match "scss/**.scss" $ do
+  match "site/scss/**.scss" $ do
     compile getResourceString
 
-  scssDependency <- makePatternDependency "scss/**.scss"
+  scssDependency <- makePatternDependency "site/scss/**.scss"
   rulesExtraDependencies [scssDependency] $ do
     create ["assets/main.css"] $ do
       route idRoute
       compile $
-        loadBody "scss/novella.scss"
+        loadBody "site/scss/novella.scss"
           >>= makeItem
           >>= scssCompiler
 
-  match "about.md" $ do
+  match "site/about.md" $ do
     route indexRoute
     compile $ pandocCompiler
-      >>= loadAndApplyTemplate "templates/post/body.html" postCtx
-      >>= loadAndApplyTemplate "templates/site/body.html" postCtx
+      >>= loadAndApplyTemplate "site/templates/post/body.html" postCtx
+      >>= loadAndApplyTemplate "site/templates/site/body.html" postCtx
       >>= relativizeUrls
 
-  match "posts/*" $ do
+  match "site/posts/*" $ do
     route dateRoute
     compile $ pandocCompiler
       >>= saveSnapshot "content"
-      >>= loadAndApplyTemplate "templates/post/body.html" postCtx
-      >>= loadAndApplyTemplate "templates/site/body.html" postCtx
+      >>= loadAndApplyTemplate "site/templates/post/body.html" postCtx
+      >>= loadAndApplyTemplate "site/templates/site/body.html" postCtx
       >>= relativizeUrls
 
   page <- buildArchivePaginateWith archiveGroup "posts/*" archiveId
@@ -63,14 +63,14 @@ runHakyll config = hakyll $ do
             postCtx
 
       makeItem ""
-        >>= loadAndApplyTemplate "templates/archive/body.html" ctx
-        >>= loadAndApplyTemplate "templates/site/body.html" ctx
+        >>= loadAndApplyTemplate "site/templates/archive/body.html" ctx
+        >>= loadAndApplyTemplate "site/templates/site/body.html" ctx
         >>= relativizeUrls
 
-  match "index.html" $ do
+  match "site/index.html" $ do
     route idRoute
     compile $ do
-      posts <- recentFirst =<< loadAll "posts/*"
+      posts <- recentFirst =<< loadAll "site/posts/*"
       archiveYear <- yearForIdentifier (itemIdentifier . head $ posts)
       let archivePage = show . archiveId $ archiveYear
       let indexCtx =
@@ -82,12 +82,12 @@ runHakyll config = hakyll $ do
 
       getResourceBody
         >>= applyAsTemplate indexCtx
-        >>= loadAndApplyTemplate "templates/site/body.html" indexCtx
+        >>= loadAndApplyTemplate "site/templates/site/body.html" indexCtx
         >>= relativizeUrls
 
-  match "templates/**" $ compile templateBodyCompiler
+  match "site/templates/**" $ compile templateBodyCompiler
 
-  create ["feed.xml"] $ do
+  create ["site/feed.xml"] $ do
     route idRoute
     compile $ do
       let feedCtx =
@@ -95,6 +95,6 @@ runHakyll config = hakyll $ do
             postCtx
 
       posts <- fmap (take postsPerPage) . recentFirst
-        =<< loadAllSnapshots "posts/*" "content"
+        =<< loadAllSnapshots "site/posts/*" "content"
 
       renderAtom (feedConfig config) feedCtx posts
