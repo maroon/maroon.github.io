@@ -1,13 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Archive
-import Contexts
+  ( buildArchivePaginateWith
+  , archiveContext
+  , archiveGroup
+  , archiveId
+  , yearForIdentifier
+  )
+import Contexts (metaContext, postContext)
 import Config (Config, loadConfiguration)
 import Data.Monoid ((<>))
-import Feed
+import Feed (feedConfig)
 import Hakyll
-import Routes
-import ScssCompiler
+import Routes (dateRoute, indexRoute, siteRoute)
+import ScssCompiler (scssCompiler)
 import qualified Config as C (display, postsPerPage)
 
 main :: IO ()
