@@ -55,16 +55,16 @@ buildArchivePaginateWith grouper pattern makeId = do
 
 archiveContext :: Paginate -> PageNumber -> Context a
 archiveContext pag currentPage = mconcat
-  [ field "firstPageNum"    $ \_ -> otherPage lastPage      >>= num
-  , field "firstPageUrl"    $ \_ -> otherPage lastPage      >>= url
-  , field "previousPageNum" $ \_ -> otherPage previousPage  >>= num
-  , field "previousPageUrl" $ \_ -> otherPage previousPage  >>= url
-  , field "nextPageNum"     $ \_ -> otherPage nextPage      >>= num
-  , field "nextPageUrl"     $ \_ -> otherPage nextPage      >>= url
-  , field "lastPageNum"     $ \_ -> otherPage firstPage     >>= num
-  , field "lastPageUrl"     $ \_ -> otherPage firstPage     >>= url
-  , field "currentPageNum"  $ \i -> thisPage i              >>= num
-  , field "currentPageUrl"  $ \i -> thisPage i              >>= url
+  [ field "firstPageNum"    $ \_ -> otherPage lastPage     >>= num
+  , field "firstPageUrl"    $ \_ -> otherPage lastPage     >>= url
+  , field "previousPageNum" $ \_ -> otherPage previousPage >>= num
+  , field "previousPageUrl" $ \_ -> otherPage previousPage >>= url
+  , field "nextPageNum"     $ \_ -> otherPage nextPage     >>= num
+  , field "nextPageUrl"     $ \_ -> otherPage nextPage     >>= url
+  , field "lastPageNum"     $ \_ -> otherPage firstPage    >>= num
+  , field "lastPageUrl"     $ \_ -> otherPage firstPage    >>= url
+  , field "currentPageNum"  $ \i -> thisPage i             >>= num
+  , field "currentPageUrl"  $ \i -> thisPage i             >>= url
   , constField "numPages"   $ show lastPage
   , Context $ \k _ i ->
       case k of
