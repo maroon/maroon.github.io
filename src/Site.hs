@@ -5,6 +5,7 @@ import Archive
 import Config
 import Data.Monoid ((<>))
 import Hakyll
+import ScssCompiler
 import System.FilePath ((</>), dropExtension, takeDirectory,
                         splitFileName, addTrailingPathSeparator)
 
@@ -124,17 +125,6 @@ indexRoute :: Routes
 indexRoute =
   customRoute ((</> "index") . dropExtension . toFilePath) `composeRoutes`
   setExtension "html"
-
-
--- Compilers -------------------------------------------------------------------
-scssCompiler :: Item String -> Compiler (Item String)
-scssCompiler = withItemBody $ unixFilter "sass" arguments
-  where
-    arguments = [ "-s"
-                , "--scss"
-                , "--style", "compressed"
-                , "--load-path", "scss"
-                ]
 
 
 -- Contexts --------------------------------------------------------------------
