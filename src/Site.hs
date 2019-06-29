@@ -20,7 +20,7 @@ runHakyll config = hakyll $ do
   let postsPerPage = C.postsPerPage . C.display $ config
 
   match "site/assets/**" $ do
-    route idRoute
+    route siteRoute
     compile copyFileCompiler
 
   match "site/scss/**.scss" $ do
@@ -29,7 +29,7 @@ runHakyll config = hakyll $ do
   scssDependency <- makePatternDependency "site/scss/**.scss"
   rulesExtraDependencies [scssDependency] $ do
     create ["assets/main.css"] $ do
-      route idRoute
+      route siteRoute
       compile $
         loadBody "site/scss/novella.scss"
           >>= makeItem
@@ -52,7 +52,7 @@ runHakyll config = hakyll $ do
 
   page <- buildArchivePaginateWith archiveGroup "posts/*" archiveId
   paginateRules page $ \pageNum pattern -> do
-    route idRoute
+    route siteRoute
     compile $ do
       posts <- recentFirst =<< loadAll pattern
       let paginateCtx = archiveContext page pageNum
@@ -68,7 +68,7 @@ runHakyll config = hakyll $ do
         >>= relativizeUrls
 
   match "site/index.html" $ do
-    route idRoute
+    route siteRoute
     compile $ do
       posts <- recentFirst =<< loadAll "site/posts/*"
       archiveYear <- yearForIdentifier (itemIdentifier . head $ posts)
@@ -88,7 +88,7 @@ runHakyll config = hakyll $ do
   match "site/templates/**" $ compile templateBodyCompiler
 
   create ["site/feed.xml"] $ do
-    route idRoute
+    route siteRoute
     compile $ do
       let feedCtx =
             bodyField "description" <>
