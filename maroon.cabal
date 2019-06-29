@@ -16,3 +16,5 @@ executable site
     , time               ^>= 1.8
     , time-locale-compat ^>= 0.1
     , yaml               ^>= 0.11
+  other-modules:
+      Config
