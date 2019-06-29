@@ -60,4 +60,4 @@ instance FromJSON Social where
   parseJSON _ = undefined
 
 loadConfiguration :: IO Config
-loadConfiguration = loadYamlSettings ["config.yaml"] [] useEnv
+loadConfiguration = loadYamlSettings ["site/config.yaml"] [] useEnv
