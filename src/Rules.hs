@@ -1,5 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+module Rules
+  ( hakyllRules
+  ) where
+
 import Archive
   ( buildArchivePaginateWith
   , archiveContext
@@ -8,21 +12,13 @@ import Archive
   , yearForIdentifier
   )
 import Contexts (metaContext, postContext)
-import Config (Config, loadConfiguration)
+import Config (Config)
 import Data.Monoid ((<>))
 import Feed (feedConfig)
 import Hakyll
 import Routes (dateRoute, indexRoute)
 import ScssCompiler (scssCompiler)
 import qualified Config as C (display, postsPerPage)
-
-main :: IO ()
-main = loadConfiguration >>= runHakyll
-
-runHakyll :: Config -> IO ()
-runHakyll config = do
-  let cfg = defaultConfiguration { providerDirectory = "site/" }
-  hakyllWith cfg $ hakyllRules config
 
 hakyllRules :: Config -> Rules ()
 hakyllRules config = do
