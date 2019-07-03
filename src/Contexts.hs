@@ -1,6 +1,7 @@
 module Contexts
   ( metaContext
   , postContext
+  , tagsContext
   ) where
 
 import Config
@@ -9,11 +10,15 @@ import System.FilePath
   ( takeDirectory
   , splitFileName
   , addTrailingPathSeparator
+  , takeBaseName
   )
 
 maybeField :: String -> Maybe String -> Context a
 maybeField _ Nothing    = mempty
 maybeField key (Just v) = constField key v
+
+tagField :: String -> Context a
+tagField = mapContext (takeBaseName . takeDirectory) . pathField
 
 formatPostUrlContext :: Context a
 formatPostUrlContext = mapContext format (urlField "url")
@@ -43,3 +48,7 @@ postContext config =
   dateField "date" "%b %e, %Y" <>
   formatPostUrlContext <>
   metaContext config
+
+tagsContext :: Context String
+tagsContext = tagField "tag" <>
+              defaultContext
