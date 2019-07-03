@@ -5,16 +5,16 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Swift Package Manager and Generics</title>
+  <title>swift-package-manager</title>
 
-  <link rel="stylesheet" href="../../../../../assets/main.css">
+  <link rel="stylesheet" href="../../assets/main.css">
 </head>
 
   
   <body>
     <header class="site-header">
   <div class="wrapper">
-    <a class="site-title  small-title " href="../../../../../">Maroon</a>
+    <a class="site-title  small-title " href="../../">Maroon</a>
   </div>
 </header>
 
@@ -24,53 +24,36 @@
     <main class="page-content">
       <div class="wrapper">
         <div class="page-header">
-  <div class="wrapper">
-    <h1>Swift Package Manager and Generics</h1>
+  <div class="wrapper archive-nav">
+    <div class="archive-nav-left">
+      <a class="archive-nav-link" href="../../tags/">←</a>
+    </div>
+    <div>
+      swift-package-manager
+    </div>
+    <div class="archive-nav-right">
+      &nbsp;
+    </div>
   </div>
 </div>
 
 
-<p>A while back I had completed updating an old flood fill algorithm when I realized it would be a great opportunity to play with the Swift Package Manager. I set off to break apart the monolithic project into several standalone pieces that I could reuse within other projects. In the end I created two modules: one for the flood fill algorithm and another for the stack that the algorithm depended upon. Afterwards I created an application to house the flood fill module and output the result to disk. Everything appeared to be going very well!</p>
-<p>The layout for the project dependencies were remarkably linear: the <code>FloodFillApp</code> depended upon the <code>FloodFill</code> module which depended upon the <code>Stack</code> module. Originally, without the separate modules, my image was taking around 200 milliseconds to process in debug mode and 40 milliseconds in release mode. I realized there might be some slight performance degradation due to <code>-whole-module-optimization</code> not being able to optimize as efficiently across module boundaries, however I wasn’t quite prepared for a sudden jump to over <em>2 minutes</em> for my image! After double checking that I didn’t miss some obscure implementation detail, I decided to try release mode. Running <code>swift build -c release</code> brought me down <em>16 seconds</em>. Huzzah?</p>
-<p>After a few days of pain and toil, I came across the core of my problem: generics. I had attempted to make my <code>Stack</code> module something that could be recycled into other projects, so generics were the obvious solution. Unfortunately, after all of the tests I performed, there was no solution that would enable better performance with the project and modules “as-is”. There are a couple of options to help with performance, but they each come with a steep cost.</p>
-<ol type="1">
-<li>Remove generics from the <code>Stack</code> module.</li>
-<li>Move the <code>Stack</code> module inside the <code>FloodFill</code> module.</li>
-<li>Use <code>@_specialize</code> on the generic class in the <code>Stack</code> module.</li>
-</ol>
-<p>Let’s take a look at each of those options.</p>
-<p>Option 1’s cost is removing generics: your module won’t be as flexible or powerful as it could be using generics. This is impractical from a collection’s standpoint. Imagine if Swift had the same crippling limitation put on something as significant as its array class: we’d have an IntArray, DoubleArray, and so forth. It’d be rubbish to develop a collection module around a single type, each of which utilizing the exact same code with only the type changing.</p>
-<p>That said, removing generics resolves the performance issues significantly. Running this in release mode with separate modules yields a 50 millisecond execution time.</p>
-<p>Option 2’s cost is the equivalent of removing Swift Package Manager entirely and sticking everything back into the monolithic project. This, unfortunately, seems to be the best option. Without the ability to optimize for generics across module boundaries, we are right back to putting the project file in the workspace and manually linking the frameworks up from there.</p>
-<p>Option 3’s cost is specializing a generic with a <em>single known</em> concrete attribute. Of the three options I’ve found, I don’t consider this a viable solution in any sense. Let me first give you an idea of what this decorator does: from the <a href="https://github.com/apple/swift/blob/master/docs/Generics.rst#specialization">Swift ‘Generics.rst’ document</a>:</p>
-<blockquote>
-<p><span class="citation" data-cites="_specialize">@_specialize</span> currently acts as a hint to the optimizer, which generates type checks and code to dispatch to the specialized routine without affecting the signature of the generic function. The intention is to support efforts at evaluating the performance of specialized code. The performance impact is not guaranteed and is likely to change with the optimizer. This attribute should only be used in conjunction with rigorous performance analysis. Eventually, a similar attribute could be defined in the language, allowing it to be exposed as part of a function’s API. That would allow direct dispatch to specialized code without type checks, even across modules.</p>
-</blockquote>
-<p>The document also gives this code use example:</p>
-<pre class="swift"><code>struct S&lt;T&gt; {
-  var x: T
-  @_specialize(Int, Float)
-  mutating func exchangeSecond&lt;U&gt;(_ u: U, _ t: T) -&gt; (U, T) {
-    x = t
-    return (u, x)
-  }
-}
+<div class="site-divider vertical-buffer"></div>
 
-// Substitutes: &lt;T, U&gt; with &lt;Int, Float&gt; producing:
-// S&lt;Int&gt;::exchangeSecond&lt;Float&gt;(u: Float, t: Int) -&gt; (Float, Int)</code></pre>
-<p>What I have found is that, yes, this does alleviate the problem that I’ve described in this post, however, <em>only the module dependency can call this</em>. This effectively means that only one type, the specialized type, will be performant–– everything else will suffer. If the <code>Stack</code> module were to use this decorator on the <code>push</code> and <code>pop</code> methods for the <code>Int</code> type, any other type, such as <code>Double</code>, would have the <em>same</em> terrible performance degradation that I’ve described.</p>
-<p>That said, the performance of using <code>@_specialize</code> garnered a 90 millisecond execution time. That’s over double the integrated, non-generic version of this project. When I originally separated everything into separate modules, this is roughly the level of performance that I had anticipated it being. For myself, it would be considered an acceptable performance penalty in order to maintain separate module boundaries and to isolate the scope of each project.</p>
+<ul class="posts">
+  
+    <li>
+      <a class="post-link" href="../../posts/2016/10/31/swift-package-manager-and-generics/">Swift Package Manager and Generics</a>
+      <span class="post-date">Oct 31, 2016</span>
+    </li>
+  
+</ul>
+
 
       </div>
     </main>
 
     
-  <div class="page-footer">
-    <div class="wrapper">
-      <span class="post-date">Oct 31, 2016</span>
-    </div>
-  </div>
-
 
 <div class="site-divider"></div>
 
@@ -79,11 +62,11 @@
     <div class="footer-column-wrapper">
       <div class="footer-column footer-site-description">
         Experiments, problems, ideas, and general nonsense.<br />
-        My name is <a href="../../../../../about/">Ryan and I like programming.</a>
+        My name is <a href="../../about/">Ryan and I like programming.</a>
       </div>
       <div class="footer-column footer-crumb-column">
         <ul class="crumb-list">
-          <li><a class="crumb-link" href="../../../../../feed.xml">
+          <li><a class="crumb-link" href="../../feed.xml">
   <span class="crumb-svg"><?xml version="1.0" ?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg enable-background="new 0 0 50 50" id="Layer_1" version="1.1" viewBox="0 0 50 50" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="_x2E__x29__x29_"><circle cx="18.5" cy="31.5" fill="#F2890A" id="Dot__x28____x29_" r="3.1"></circle><path d="M15.4,11.5v3.8c10.6,0,19.2,8.6,19.2,19.2h3.8C38.5,21.8,28.2,11.5,15.4,11.5z" fill="#F2890A" id="Line__x29__1_"></path><path d="M15.4,19.2V23C21.8,23,27,28.2,27,34.6h3.8C30.8,26.1,23.9,19.2,15.4,19.2z" fill="#F2890A" id="Line__x29_"></path></g><path d="M25,1C11.7,1,1,11.7,1,25s10.7,24,24,24s24-10.7,24-24S38.3,1,25,1z M25,44C14.5,44,6,35.5,6,25S14.5,6,25,6  s19,8.5,19,19S35.5,44,25,44z" fill="#F2890A"></path></svg></span>
   <span class="crumb-text">Subscribe</span>
 </a>
@@ -98,7 +81,7 @@
 </a>
 </li>
           
-          <li><a class="crumb-link" href="../../../../../tags/">
+          <li><a class="crumb-link" href="../../tags/">
   <span class="crumb-svg"><?xml version="1.0" encoding="UTF-8" ?>
 <svg width="536px" height="610px" viewBox="0 0 536 610" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" fill-opacity="0">
