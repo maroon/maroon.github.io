@@ -79,11 +79,12 @@ hakyllRules config = do
     compile $ do
       posts <- recentFirst =<< loadAll "posts/*"
       archiveYear <- yearForIdentifier (itemIdentifier . head $ posts)
+      let showArchive = (const $ length posts > postsPerPage)
       let archivePage = show . archiveId $ archiveYear
       let indexCtx =
             listField "posts" postCtx (return posts) <>
             constField "title" "Home" <>
-            boolField "show_archive" (const $ length posts > postsPerPage) <>
+            boolField "show_archive" showArchive <>
             constField "archive_page" archivePage <>
             metaCtx
 
