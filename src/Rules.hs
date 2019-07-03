@@ -11,12 +11,16 @@ import Archive
   , archiveId
   , yearForIdentifier
   )
-import Contexts (metaContext, postContext)
 import Config (Config)
+import Contexts
+  ( metaContext
+  , postContext
+  , tagsContext
+  )
 import Data.Monoid ((<>))
 import Feed (feedConfig)
 import Hakyll
-import Routes (dateRoute, indexRoute)
+import Routes (dateRoute, indexRoute, tagsRoute)
 import ScssCompiler (scssCompiler)
 import qualified Config as C (display, postsPerPage)
 
@@ -56,6 +60,35 @@ hakyllRules config = do
       >>= loadAndApplyTemplate "templates/post/body.html" postCtx
       >>= loadAndApplyTemplate "templates/site/body.html" postCtx
       >>= relativizeUrls
+
+  tags <- buildTags "posts/*" (fromCapture "tags/*/index.html")
+  tagsRules tags $ \tag pattern -> do
+    route idRoute
+    compile $ do
+      posts <- recentFirst =<< loadAll pattern
+      let ctx =
+            constField "title" tag <>
+            listField "posts" postCtx (return posts) <>
+            postCtx
+
+      makeItem ""
+        >>= loadAndApplyTemplate "templates/tag/body.html" ctx
+        >>= loadAndApplyTemplate "templates/site/body.html" ctx
+        >>= relativizeUrls
+
+  match "tags.html" $ do
+    route tagsRoute
+    compile $ do
+      tags' <- loadAll "tags/*/index.html"
+      let tagCtx =
+            constField "title" "Tags" <>
+            listField "tags" tagsContext (return tags') <>
+            postCtx
+
+      getResourceBody
+        >>= applyAsTemplate tagCtx
+        >>= loadAndApplyTemplate "templates/site/body.html" tagCtx
+        >>= relativizeUrls
 
   page <- buildArchivePaginateWith archiveGroup "posts/*" archiveId
   paginateRules page $ \pageNum pattern -> do
