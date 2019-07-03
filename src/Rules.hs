@@ -111,8 +111,8 @@ hakyllRules config = do
     route idRoute
     compile $ do
       posts <- recentFirst =<< loadAll "posts/*"
-      archiveYear <- yearForIdentifier (itemIdentifier . head $ posts)
-      let showArchive = (const $ length posts > postsPerPage)
+      archiveYear <- yearForIdentifier . itemIdentifier . head $ posts
+      let showArchive = const $ length posts > postsPerPage
       let archivePage = show . archiveId $ archiveYear
       let indexCtx =
             listField "posts" postCtx (return posts) <>
