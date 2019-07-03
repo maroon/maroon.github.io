@@ -49,7 +49,7 @@
   @include vertical-spacing(1);
 }
 
-.posts {
+.posts, .tags {
   list-style: none;
   text-align: center;
 
@@ -58,7 +58,7 @@
   }
 }
 
-.post-link {
+.post-link, .tag-link {
   @extend %heading-5;
 }
 
