@@ -78,7 +78,7 @@
   }
 }
 
-.archive-nav {
+.nav-heading {
   display: flex;
   flex-flow: nowrap;
   align-items: center;
@@ -90,18 +90,18 @@
     min-width: 33%;
   }
 
-  > .archive-nav-left {
+  > .nav-left {
     text-align: right;
     padding: 0 0.5em;
   }
 
-  > .archive-nav-right {
+  > .nav-right {
     text-align: left;
     padding: 0 0.5em;
   }
 }
 
-.archive-nav-link {
+.nav-link {
   text-decoration: none;
 }
 
