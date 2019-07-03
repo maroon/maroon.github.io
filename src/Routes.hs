@@ -1,6 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Routes
   ( dateRoute
   , indexRoute
+  , tagsRoute
   ) where
 
 import Hakyll
@@ -21,4 +24,12 @@ indexRoute = foldl1 composeRoutes routes
     routes =
       [ customRoute ((</> "index") . dropExtension . toFilePath)
       , setExtension "html"
+      ]
+
+tagsRoute :: Routes
+tagsRoute = foldl1 composeRoutes routes
+  where
+    routes =
+      [ constRoute $ toFilePath "tags/"
+      , indexRoute
       ]
