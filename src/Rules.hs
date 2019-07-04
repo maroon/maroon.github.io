@@ -66,28 +66,28 @@ hakyllRules config = do
     route idRoute
     compile $ do
       posts <- recentFirst =<< loadAll pattern
-      let ctx =
+      let context =
             constField "title" tag <>
             listField "posts" postCtx (return posts) <>
             postCtx
 
       makeItem ""
-        >>= loadAndApplyTemplate "templates/tag/body.html" ctx
-        >>= loadAndApplyTemplate "templates/site/body.html" ctx
+        >>= loadAndApplyTemplate "templates/tag/body.html" context
+        >>= loadAndApplyTemplate "templates/site/body.html" context
         >>= relativizeUrls
 
   match "tags.html" $ do
     route tagsRoute
     compile $ do
       tags' <- loadAll "tags/*/index.html"
-      let tagCtx =
+      let context =
             constField "title" "Tags" <>
             listField "tags" tagsContext (return tags') <>
             postCtx
 
       getResourceBody
-        >>= applyAsTemplate tagCtx
-        >>= loadAndApplyTemplate "templates/site/body.html" tagCtx
+        >>= applyAsTemplate context
+        >>= loadAndApplyTemplate "templates/site/body.html" context
         >>= relativizeUrls
 
   page <- buildArchivePaginateWith archiveGroup "posts/*" archiveId
@@ -95,16 +95,15 @@ hakyllRules config = do
     route idRoute
     compile $ do
       posts <- recentFirst =<< loadAll pattern
-      let paginateCtx = archiveContext page pageNum
-          ctx =
+      let context =
             constField "title" "Archives" <>
             listField "posts" postCtx (return posts) <>
-            paginateCtx <>
+            archiveContext page pageNum <>
             postCtx
 
       makeItem ""
-        >>= loadAndApplyTemplate "templates/archive/body.html" ctx
-        >>= loadAndApplyTemplate "templates/site/body.html" ctx
+        >>= loadAndApplyTemplate "templates/archive/body.html" context
+        >>= loadAndApplyTemplate "templates/site/body.html" context
         >>= relativizeUrls
 
   match "index.html" $ do
@@ -114,7 +113,7 @@ hakyllRules config = do
       archiveYear <- yearForIdentifier . itemIdentifier . head $ posts
       let showArchive = const $ length posts > postsPerPage
       let archivePage = show . archiveId $ archiveYear
-      let indexCtx =
+      let context =
             listField "posts" postCtx (return posts) <>
             constField "title" "Home" <>
             boolField "show_archive" showArchive <>
@@ -122,8 +121,8 @@ hakyllRules config = do
             metaCtx
 
       getResourceBody
-        >>= applyAsTemplate indexCtx
-        >>= loadAndApplyTemplate "templates/site/body.html" indexCtx
+        >>= applyAsTemplate context
+        >>= loadAndApplyTemplate "templates/site/body.html" context
         >>= relativizeUrls
 
   match "templates/**" $ compile templateBodyCompiler
@@ -131,11 +130,11 @@ hakyllRules config = do
   create ["feed.xml"] $ do
     route idRoute
     compile $ do
-      let feedCtx =
+      let context =
             bodyField "description" <>
             postCtx
 
       posts <- fmap (take postsPerPage) . recentFirst
         =<< loadAllSnapshots "posts/*" "content"
 
-      renderAtom (feedConfig config) feedCtx posts
+      renderAtom (feedConfig config) context posts
