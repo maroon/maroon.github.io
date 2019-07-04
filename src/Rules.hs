@@ -79,7 +79,7 @@ hakyllRules config = do
   match "tags.html" $ do
     route tagsRoute
     compile $ do
-      tags' <- loadAll "tags/*/index.html"
+      tags' <- loadAll "tags/**"
       let context =
             constField "title" "Tags" <>
             listField "tags" tagsContext (return tags') <>
