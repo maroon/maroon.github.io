@@ -114,7 +114,7 @@ hakyllRules config = do
       let showArchive = const $ length posts > postsPerPage
       let archivePage = show . archiveId $ archiveYear
       let context =
-            listField "posts" postCtx (return posts) <>
+            listField "posts" postCtx (return $ take postsPerPage posts) <>
             constField "title" "Home" <>
             boolField "show_archive" showArchive <>
             constField "archive_page" archivePage <>
