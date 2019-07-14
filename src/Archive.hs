@@ -112,6 +112,6 @@ archiveContext pag currentPage = mconcat
     num = return . show . fst
 
     url :: (Int, Identifier) -> Compiler String
-    url (n, i) = getRoute i >>= \mbR -> case mbR of
+    url (n, i) = getRoute i >>= \case
       Just r  -> return $ toUrl r
       Nothing -> fail $ "No URL for page: " ++ show n
