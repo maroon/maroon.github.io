@@ -78,8 +78,7 @@ archiveContext pag currentPage = mconcat
             \n -> bool (otherPage n) (thisPage i) (n == currentPage)
           items <- mapM makeItem list
           return $ ListField ctx items
-        _          -> do
-          empty
+        _          -> empty
   ]
   where
     firstPage :: PageNumber
