@@ -70,7 +70,7 @@ archiveContext pag currentPage = mconcat
       case k of
         "allPages" -> do
           let ctx =
-                field "isCurrent" (\n -> bool empty (return "true") $ fst (itemBody n) == currentPage) <>
+                boolField "isCurrent" (\n -> fst (itemBody n) == currentPage) <>
                 field "num" (num . itemBody) <>
                 field "url" (url . itemBody)
 
