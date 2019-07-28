@@ -20,7 +20,7 @@ import Contexts
 import Data.Monoid ((<>))
 import Feed (feedConfig)
 import Hakyll
-import Routes (dateRoute, indexRoute, tagsRoute)
+import Routes (crumbRoute, dateRoute, indexRoute, tagsRoute)
 import ScssCompiler (scssCompiler)
 import qualified Config as C (display, postsPerPage)
 
@@ -125,7 +125,10 @@ hakyllRules config = do
         >>= loadAndApplyTemplate "templates/site/body.html" context
         >>= relativizeUrls
 
-  match "templates/**" $ compile templateBodyCompiler
+  match "templates/**.html" $ compile templateBodyCompiler
+  match "templates/**.svg" $ do
+    route crumbRoute
+    compile copyFileCompiler
 
   create ["feed.xml"] $ do
     route idRoute
