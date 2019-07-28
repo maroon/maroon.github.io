@@ -1,13 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Routes
-  ( dateRoute
+  ( crumbRoute
+  , dateRoute
   , indexRoute
   , tagsRoute
   ) where
 
 import Hakyll
-import System.FilePath ((</>), dropExtension)
+import System.FilePath ((</>), dropExtension, takeFileName)
 
 dateRoute :: Routes
 dateRoute = foldl1 composeRoutes routes
@@ -25,6 +26,13 @@ indexRoute = foldl1 composeRoutes routes
       [ customRoute ((</> "index") . dropExtension . toFilePath)
       , setExtension "html"
       ]
+
+crumbRoute :: Routes
+crumbRoute
+  = customRoute
+  $ (</>) "assets/crumbs"
+  . takeFileName
+  . toFilePath
 
 tagsRoute :: Routes
 tagsRoute = foldl1 composeRoutes routes
