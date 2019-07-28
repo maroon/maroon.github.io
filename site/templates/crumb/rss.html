@@ -1,4 +1,9 @@
 <a class="crumb-link" href="/feed.xml">
-  <span class="crumb-svg">$partial("templates/crumb/rss.svg")$</span>
+  <span class="crumb-svg">
+    <picture>
+      <source srcset="/assets/crumbs/rss-dark.svg" media="(prefers-color-scheme: dark)">
+      <img src="/assets/crumbs/rss.svg">
+    </picture>
+  </span>
   <span class="crumb-text">Subscribe</span>
 </a>

@@ -1,4 +1,9 @@
 <a class="crumb-link" href="mailto:$email$">
-  <span class="crumb-svg">$partial("templates/crumb/email.svg")$</span>
+  <span class="crumb-svg">
+    <picture>
+      <source srcset="/assets/crumbs/email-dark.svg" media="(prefers-color-scheme: dark)">
+      <img src="/assets/crumbs/email.svg">
+    </picture>
+  </span>
   <span class="crumb-text">Email</span>
 </a>
