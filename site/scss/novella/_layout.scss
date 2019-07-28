@@ -36,12 +36,12 @@
 }
 
 .site-divider {
-  background-color: $dark-base-color;
   border-radius: 0.1em;
 
   width: 10em;
   height: 0.125em;
 
+  @include color-scheme(background-color, text-color);
   @extend %center-margins;
 }
 
@@ -65,7 +65,7 @@
 .post-date {
   display: block;
 
-  color: $faded-color;
+  @include color-scheme(color, faded-color);
 }
 
 .archive {

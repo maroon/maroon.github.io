@@ -1,19 +1,22 @@
 body {
   font: $font-weight #{$font-size}/#{$line-height} $font-family;
   font-kerning: normal;
-  color: $text-color;
-  background-color: $background-color;
+
+  @include color-scheme(color, text-color);
+  @include color-scheme(background-color, background-color);
 }
 
 a {
-  color: $text-color;
   padding: 0.125em;
   text-decoration: underline;
 
+  @include color-scheme(color, text-color);
+
   &:hover {
-    color: $background-color;
-    background-color: $text-color;
     border-radius: 0.125em;
+
+    @include color-scheme(color, background-color);
+    @include color-scheme(background-color, text-color);
   }
 }
 
@@ -28,10 +31,10 @@ p, ol, ul, dl {
 }
 
 blockquote {
-  color: $faded-color;
-  border-left: 0.25em solid $dark-base-color;
   border-radius: 0.375em;
 
+  @include color-scheme(color, faded-color);
+  @include color-scheme(border-left, text-color, 0.25em solid);
   @include horizontal-padding(2);
   @include horizontal-spacing(2);
 
@@ -45,9 +48,8 @@ ul, ol, dl {
 }
 
 div > pre {
-  color: #586e75;
-  background-color: #faf2d0;
-
+  @include color-scheme(color, text-color);
+  @include color-scheme(background-color, highlight-color);
   @extend %code-block;
 
   > code > * > a {
@@ -57,8 +59,8 @@ div > pre {
 
 *:not([class]) > code {
   padding: 0.15em 0.25em;
-  background-color: $highlight-color;
 
+  @include color-scheme(background-color, highlight-color);
   @extend %code-blurb;
 }
 
