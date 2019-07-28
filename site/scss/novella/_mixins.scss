@@ -4,6 +4,14 @@
   }
 }
 
+@mixin color-scheme($property, $name, $args: '') {
+  #{$property}: #{$args} map-get(map-get($schemes, default), $name);
+
+  @media (prefers-color-scheme: dark) {
+    #{$property}: #{$args} map-get(map-get($schemes, dark), $name);
+  }
+}
+
 @mixin horizontal-padding($divisor: 1) {
   padding-left: $spacing-unit / $divisor;
   padding-right: $spacing-unit / $divisor;
