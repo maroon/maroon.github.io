@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="325px" height="325px" viewBox="0 0 325 325" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M200,325 C200,214.544351 110.45695,125.002356 0,125.002356" id="Oval" stroke="#FFFFFF" stroke-width="50"></path>
+        <path d="M300,325 C300,159.316527 165.685425,25.0035338 0,25.0035338" id="Oval" stroke="#FFFFFF" stroke-width="50"></path>
+        <circle id="Oval" fill="#FFFFFF" cx="50" cy="275" r="50"></circle>
+    </g>
+</svg>

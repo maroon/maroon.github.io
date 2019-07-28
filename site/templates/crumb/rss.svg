@@ -1,1 +1,8 @@
-<?xml version="1.0" ?><!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'><svg enable-background="new 0 0 50 50" id="Layer_1" version="1.1" viewBox="0 0 50 50" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="_x2E__x29__x29_"><circle cx="18.5" cy="31.5" fill="#F2890A" id="Dot__x28____x29_" r="3.1"/><path d="M15.4,11.5v3.8c10.6,0,19.2,8.6,19.2,19.2h3.8C38.5,21.8,28.2,11.5,15.4,11.5z" fill="#F2890A" id="Line__x29__1_"/><path d="M15.4,19.2V23C21.8,23,27,28.2,27,34.6h3.8C30.8,26.1,23.9,19.2,15.4,19.2z" fill="#F2890A" id="Line__x29_"/></g><path d="M25,1C11.7,1,1,11.7,1,25s10.7,24,24,24s24-10.7,24-24S38.3,1,25,1z M25,44C14.5,44,6,35.5,6,25S14.5,6,25,6  s19,8.5,19,19S35.5,44,25,44z" fill="#F2890A"/></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="325px" height="325px" viewBox="0 0 325 325" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M200,325 C200,214.544351 110.45695,125.002356 0,125.002356" id="Oval" stroke="#000000" stroke-width="50"></path>
+        <path d="M300,325 C300,159.316527 165.685425,25.0035338 0,25.0035338" id="Oval" stroke="#000000" stroke-width="50"></path>
+        <circle id="Oval" fill="#000000" cx="50" cy="275" r="50"></circle>
+    </g>
+</svg>
