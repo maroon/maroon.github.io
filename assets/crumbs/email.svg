@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="560px" height="397px" viewBox="0 0 560 397" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="Rectangle" stroke="#000000" stroke-width="30" stroke-linejoin="bevel" x="15" y="15" width="530" height="367" rx="65"></rect>
+        <path d="M94.1989155,92.1894737 L278.596747,210.568421" id="Line" stroke="#000000" stroke-width="35" stroke-linecap="round" transform="translate(186.198916, 151.189474) rotate(-1.000000) translate(-186.198916, -151.189474) "></path>
+        <path d="M280.25,90.25 L468.75,208.75" id="Line" stroke="#000000" stroke-width="35" stroke-linecap="round" transform="translate(374.250000, 149.250000) scale(-1, 1) translate(-374.250000, -149.250000) "></path>
+        <path d="M447.75,300.75 L374.25,218.25" id="Line" stroke="#000000" stroke-width="35" stroke-linecap="round"></path>
+        <path d="M186.25,218.25 L112.75,300.75" id="Line" stroke="#000000" stroke-width="35" stroke-linecap="round"></path>
+    </g>
+</svg>
