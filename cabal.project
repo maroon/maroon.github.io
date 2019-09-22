@@ -1,2 +1,3 @@
 packages: maroon.cabal
+with-compiler: ghc-8.6
 constraints: hakyll +checkExternal +previewServer +usePandoc +watchServer
