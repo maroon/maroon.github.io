@@ -17,7 +17,6 @@ import Contexts
   , postContext
   , tagsContext
   )
-import Data.Monoid ((<>))
 import Feed (feedConfig)
 import Hakyll
 import Routes (crumbRoute, dateRoute, indexRoute, tagsRoute)

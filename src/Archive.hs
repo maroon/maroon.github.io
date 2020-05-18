@@ -8,7 +8,6 @@ module Archive
 
 import Control.Applicative (empty)
 import Control.Monad (forM)
-import Control.Monad.Fail (MonadFail)
 import Data.Bool (bool)
 import Data.List (groupBy)
 import Data.Time.Calendar (toGregorian)
