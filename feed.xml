@@ -18,34 +18,34 @@
     <summary type="html"><![CDATA[<p>When it comes time to deploy a Hakyll project using a service such as GitHub Pages, there is a tutorial <a href="https://jaspervdj.be/hakyll/tutorials/github-pages-tutorial.html">just for that.</a></p>
 <p>Of course I wouldn’t be writing this if it had worked for me. I suspected it might not work out when I saw the files being copied between branches. For most, this solution may work without an issue. For myself, it was a constant source of pain. During the design phase of my project I realized that there should never be a reason to have the static web content follow the same flow as my development branch. It felt odd to have two disparate patterns inhabiting the same path. To better facilitate this divergence I created the <code>master</code> branch as an orphan.</p>
 <p>Because of this design decision, the helper script wouldn’t play nicely with the differences between branches. I had to update the <code>master</code>’s <code>.gitignore</code> file and adjust the <code>rsync</code> command to remove the unwanted files that remained during any branch checkouts.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb1-1"><a href="#cb1-1"></a>rsync -a --filter=<span class="st">&#39;P _site/&#39;</span>       <span class="kw">\</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a>         --filter=<span class="st">&#39;P _cache/&#39;</span>      <span class="kw">\</span></span>
-<span id="cb1-3"><a href="#cb1-3"></a>         --filter=<span class="st">&#39;P .git/&#39;</span>        <span class="kw">\</span></span>
-<span id="cb1-4"><a href="#cb1-4"></a>         --filter=<span class="st">&#39;P .gitignore&#39;</span>   <span class="kw">\</span></span>
-<span id="cb1-5"><a href="#cb1-5"></a>         --delete-excluded         <span class="kw">\</span></span>
-<span id="cb1-6"><a href="#cb1-6"></a>         _site/ <span class="kw">.</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>rsync -a --filter=<span class="st">&#39;P _site/&#39;</span>       <span class="kw">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>         --filter=<span class="st">&#39;P _cache/&#39;</span>      <span class="kw">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>         --filter=<span class="st">&#39;P .git/&#39;</span>        <span class="kw">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>         --filter=<span class="st">&#39;P .gitignore&#39;</span>   <span class="kw">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>         --delete-excluded         <span class="kw">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>         _site/ <span class="kw">.</span></span></code></pre></div>
 <p>This is an abridged version of the <code>rsync</code> necessary to achieve what I wanted. It is important to note that there are changes to the command that caused additional side effects which are not present within the tutorial link above.</p>
 <p>While using the <code>rsync</code> command from the tutorial I noticed several of my development files would “leak” over to the <code>master</code> branch, which I did not want. This was no fault of <code>rsync</code>, rather this was fallout from the use of an orphaned branch. The script’s shortcomings were merely exacerbated by its involvement. One option was to change the <code>.gitignore</code> file within the <code>master</code> branch to exclude these development related files. The problem that I faced was that some structures, such as the <code>post</code> directory, were shared between the <code>master</code> and development branches and could potentially require complex exclusion patterns. Therefore, I chose a different option: I decided to modify the <code>rsync</code> command in the deployment script since such structures would be overridden during its execution.</p>
 <p>This became increasingly painful to maintain as the site grew in complexity. In addition to the script’s frailty, I often had to combat data loss when I failed to append additional filter commands for new files or directories. The script did hold together while I deployed the first few updates to the site. Once I was satisfied with how the site worked, I turned my attention to creating a better deployment solution for myself.</p>
 <p><code>git</code> has a command called <code>worktree</code> that is defined as allowing the management of multiple working trees attached to the same repository. This amounts to performing a <code>checkout</code> on a branch which is then placed into a different directory than that of the working directory. As an aside, this is <a href="https://git-scm.com/docs/git-worktree/2.20.0#_bugs">often</a> a fantastic command for avoiding the typical <code>stash</code>/<code>commit</code>/<code>rebase</code> necessary to get the working directory back to its previous state after an emergency branch change.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb2-1"><a href="#cb2-1"></a>git worktree remove -f _master</span>
-<span id="cb2-2"><a href="#cb2-2"></a></span>
-<span id="cb2-3"><a href="#cb2-3"></a>git stash -u</span>
-<span id="cb2-4"><a href="#cb2-4"></a>git checkout devel</span>
-<span id="cb2-5"><a href="#cb2-5"></a>./scripts/rebuild_site.sh</span>
-<span id="cb2-6"><a href="#cb2-6"></a></span>
-<span id="cb2-7"><a href="#cb2-7"></a>git worktree add _master master</span>
-<span id="cb2-8"><a href="#cb2-8"></a>git fetch --all</span>
-<span id="cb2-9"><a href="#cb2-9"></a><span class="kw">(cd</span> _master <span class="kw">&amp;&amp;</span> git merge --ff-only<span class="kw">)</span></span>
-<span id="cb2-10"><a href="#cb2-10"></a></span>
-<span id="cb2-11"><a href="#cb2-11"></a>rsync -a _site/ _master/</span>
-<span id="cb2-12"><a href="#cb2-12"></a></span>
-<span id="cb2-13"><a href="#cb2-13"></a><span class="kw">(cd</span> _master <span class="kw">&amp;&amp;</span> git add --all <span class="kw">&amp;&amp;</span> git commit -m <span class="st">&quot;</span><span class="ot">$1</span><span class="st">&quot;</span><span class="kw">)</span></span>
-<span id="cb2-14"><a href="#cb2-14"></a></span>
-<span id="cb2-15"><a href="#cb2-15"></a>git worktree remove -f _master</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>git worktree remove -f _master</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>git stash -u</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>git checkout devel</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a>./scripts/rebuild_site.sh</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a>git worktree add _master master</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a>git fetch --all</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a><span class="kw">(cd</span> _master <span class="kw">&amp;&amp;</span> git merge --ff-only<span class="kw">)</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a>rsync -a _site/ _master/</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true"></a><span class="kw">(cd</span> _master <span class="kw">&amp;&amp;</span> git add --all <span class="kw">&amp;&amp;</span> git commit -m <span class="st">&quot;</span><span class="ot">$1</span><span class="st">&quot;</span><span class="kw">)</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true"></a>git worktree remove -f _master</span></code></pre></div>
 <p>Here is the core of the deployment script I came up with. Depending on workflow requirements some modifications to fetching and fast-forwarding might be necessary. Keep in mind that I haven’t had a reason to test this on a non-orphaned Hakyll project, although I would imagine that it should work in a similar fashion to the tutorial linked herein.</p>
 <p>First it ensures that no work tree exists within the <code>_master</code> directory; if there is, any unsaved changes within the directory are lost. The steps following that are pretty straightforward: stash all changes, checkout the development branch, and preform a rebuild of the static web content. After that the <code>worktree</code> command is leveraged: it creates a working tree of the <code>master</code> branch inside the <code>_master</code> directory. The latest remote changes are fetched and the local <code>master</code> repository is fast-forwarded. It then issues an <code>rsync</code> command that copies the static web content contained within the <code>_site</code> directory into the <code>_master</code> directory. All the changes within <code>_master</code> are then staged and committed. Finally, the working tree is removed, leaving the development branch in a clean state and any unsaved changes at the top of the stash.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb3-1"><a href="#cb3-1"></a>→ ./scripts/deploy.sh <span class="st">&quot;Commit message goes here!&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>→ ./scripts/deploy.sh <span class="st">&quot;Commit message goes here!&quot;</span></span></code></pre></div>
 <p>This is an example of a call to the deployment script. Note the argument given to it is passed along as the <code>master</code>’s commit message. After the script has finished I review the changes made to the <code>master</code> branch. If all looks well, I then push those changes to the remote repository.</p>]]></summary>
 </entry>
 <entry>
@@ -64,17 +64,17 @@
 <li>Specify a scope without creating new function definitions everywhere.</li>
 </ol>
 <p>The first item can be a little confusing for those that haven’t run into C scopes before. I’m going to express it here in Objective-C.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode objectivec"><code class="sourceCode objectivec"><span id="cb1-1"><a href="#cb1-1"></a>{</span>
-<span id="cb1-2"><a href="#cb1-2"></a>  CGPoint point = CGPointMake(<span class="dv">5</span>, <span class="dv">12</span>);</span>
-<span id="cb1-3"><a href="#cb1-3"></a>  {</span>
-<span id="cb1-4"><a href="#cb1-4"></a>    CGPoint point = CGPointMake(<span class="dv">44</span>, <span class="dv">-11</span>);</span>
-<span id="cb1-5"><a href="#cb1-5"></a>    NSLog(<span class="st">@&quot;%@&quot;</span>, NSStringFromCGPoint(point));</span>
-<span id="cb1-6"><a href="#cb1-6"></a>  }</span>
-<span id="cb1-7"><a href="#cb1-7"></a>  NSLog(<span class="st">@&quot;%@&quot;</span>, NSStringFromCGPoint(point));</span>
-<span id="cb1-8"><a href="#cb1-8"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode objectivec"><code class="sourceCode objectivec"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>{</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>  CGPoint point = CGPointMake(<span class="dv">5</span>, <span class="dv">12</span>);</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>  {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    CGPoint point = CGPointMake(<span class="dv">44</span>, <span class="dv">-11</span>);</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>    NSLog(<span class="st">@&quot;%@&quot;</span>, NSStringFromCGPoint(point));</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>  }</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>  NSLog(<span class="st">@&quot;%@&quot;</span>, NSStringFromCGPoint(point));</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>}</span></code></pre></div>
 <p>Outputs:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode objectivec"><code class="sourceCode objectivec"><span id="cb2-1"><a href="#cb2-1"></a>{<span class="dv">44</span>, <span class="dv">-11</span>}</span>
-<span id="cb2-2"><a href="#cb2-2"></a>{<span class="dv">5</span>, <span class="dv">12</span>}</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode objectivec"><code class="sourceCode objectivec"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>{<span class="dv">44</span>, <span class="dv">-11</span>}</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a>{<span class="dv">5</span>, <span class="dv">12</span>}</span></code></pre></div>
 <p>For me, being able to rapidly scope out details like this is an immeasurably powerful tool.</p>
 <p>I started toying with the shape of these ideas by writing a function that would take a value and transform it.</p>
 <pre class="swift"><code>let f: (CATransform3D) -&gt; CATransform3D = { transform in
@@ -119,23 +119,23 @@ func =&gt; &lt;T&gt;(value: inout T, transform: (inout T) throws -&gt; Void) ret
     <updated>2018-10-02T00:00:00Z</updated>
     <summary type="html"><![CDATA[<p>During the move to Hakyll, I decided it would be best to reflect on the slugs used within the site. The idea would be to strip off any HTML matter from the slug, making the slug itself the star of the show. The end result would look something like <code>/posts/yyyy/mm/dd/post-name/</code> or <code>/page-name/</code>.</p>
 <p>I would need a base route to begin this process; a way to transmogrify all pages so that they had an <code>index.html</code> ending. From there I could build up more complex routes that were specific to different domains. Hakyll made composing routes very simple by providing a function aptly named <code>composeRoutes</code>.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1"></a><span class="ot">indexRoute ::</span> <span class="dt">Routes</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a>indexRoute <span class="ot">=</span></span>
-<span id="cb1-3"><a href="#cb1-3"></a>  customRoute ((<span class="op">&lt;/&gt;</span> <span class="st">&quot;index&quot;</span>) <span class="op">.</span> dropExtension <span class="op">.</span> toFilePath) <span class="ot">`composeRoutes`</span></span>
-<span id="cb1-4"><a href="#cb1-4"></a>  setExtension <span class="st">&quot;html&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="ot">indexRoute ::</span> <span class="dt">Routes</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>indexRoute <span class="ot">=</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>  customRoute ((<span class="op">&lt;/&gt;</span> <span class="st">&quot;index&quot;</span>) <span class="op">.</span> dropExtension <span class="op">.</span> toFilePath) <span class="ot">`composeRoutes`</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>  setExtension <span class="st">&quot;html&quot;</span></span></code></pre></div>
 <p>This takes whatever the file path of the identifier is, drops its extension, and appends <code>/index.html</code> to it. This gave me exactly what I was looking for and is now the route through which all others will pass. I then moved on to the heart of the system: posts.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb2-1"><a href="#cb2-1"></a>→ <span class="kw">ls</span> -1p posts/</span>
-<span id="cb2-2"><a href="#cb2-2"></a>2016-10-31-swift-package-manager-and-generics.md</span>
-<span id="cb2-3"><a href="#cb2-3"></a>2017-10-14-swift-reusable-codable-structures.md</span>
-<span id="cb2-4"><a href="#cb2-4"></a>2018-08-31-hakyll-sass-dependency.md</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>→ <span class="kw">ls</span> -1p posts/</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a>2016-10-31-swift-package-manager-and-generics.md</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>2017-10-14-swift-reusable-codable-structures.md</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>2018-08-31-hakyll-sass-dependency.md</span></code></pre></div>
 <p>Posts within the site adhere to a very simple date-title format. <code>gsubRoute</code> can be used to match against this pattern. By feeding it the date pattern and a function that replaces the dashes with directory separators, the desired directory structure is produced.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1"></a><span class="ot">dateRoute ::</span> <span class="dt">Routes</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a>dateRoute <span class="ot">=</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a>  gsubRoute <span class="st">&quot;/[0-9]{4}-[0-9]{2}-[0-9]{2}-&quot;</span> (replaceAll <span class="st">&quot;-&quot;</span> <span class="op">$</span> <span class="fu">const</span> <span class="st">&quot;/&quot;</span>) <span class="ot">`composeRoutes`</span></span>
-<span id="cb3-4"><a href="#cb3-4"></a>  indexRoute</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ot">dateRoute ::</span> <span class="dt">Routes</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>dateRoute <span class="ot">=</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>  gsubRoute <span class="st">&quot;/[0-9]{4}-[0-9]{2}-[0-9]{2}-&quot;</span> (replaceAll <span class="st">&quot;-&quot;</span> <span class="op">$</span> <span class="fu">const</span> <span class="st">&quot;/&quot;</span>) <span class="ot">`composeRoutes`</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>  indexRoute</span></code></pre></div>
 <p>This runs a regex over an identifier, replacing the post file format with an isomorphic directory structure. Note the composition with <code>indexRoute</code> above, which yields the final post slug: <code>/yyyy/mm/dd/post-name/index.html</code>.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1"></a>match <span class="st">&quot;posts/*&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb4-2"><a href="#cb4-2"></a>  route dateRoute</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>match <span class="st">&quot;posts/*&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>  route dateRoute</span></code></pre></div>
 <p>The last step is to add or update a <code>Rules</code> structure with the given route, and that’s it!</p>]]></summary>
 </entry>
 <entry>
@@ -145,59 +145,59 @@ func =&gt; &lt;T&gt;(value: inout T, transform: (inout T) throws -&gt; Void) ret
     <published>2018-08-31T00:00:00Z</published>
     <updated>2018-08-31T00:00:00Z</updated>
     <summary type="html"><![CDATA[<p>One of the very first adventures I had in Hakyll was coming up with a way to get the Sass compiler working with it. Some time ago I had published a <a href="https://github.com/maroon/novella">theme for Jekyll</a>, which I had decided I wanted to keep around for this blog. I simply created a <code>scss</code> directory which housed the theme’s files.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb1-1"><a href="#cb1-1"></a>→ <span class="kw">ls</span> -1p scss/</span>
-<span id="cb1-2"><a href="#cb1-2"></a>novella/</span>
-<span id="cb1-3"><a href="#cb1-3"></a>novella.scss</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>→ <span class="kw">ls</span> -1p scss/</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>novella/</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>novella.scss</span></code></pre></div>
 <p>The solution didn’t require much knowledge of the inner workings of Hakyll. Rather, it was more about knowing how to manipulate the arguments for <code>sass</code>.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1"></a>match <span class="st">&quot;scss/*.scss&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb2-2"><a href="#cb2-2"></a>  route <span class="op">$</span> constRoute <span class="st">&quot;assets/main.css&quot;</span></span>
-<span id="cb2-3"><a href="#cb2-3"></a>  compile compressScssCompiler</span>
-<span id="cb2-4"><a href="#cb2-4"></a></span>
-<span id="cb2-5"><a href="#cb2-5"></a><span class="ot">compressScssCompiler ::</span> <span class="dt">Compiler</span> (<span class="dt">Item</span> <span class="dt">String</span>)</span>
-<span id="cb2-6"><a href="#cb2-6"></a>compressScssCompiler <span class="ot">=</span> withItemBody <span class="op">$</span> unixFilter <span class="st">&quot;sass&quot;</span> arguments</span>
-<span id="cb2-7"><a href="#cb2-7"></a>  <span class="kw">where</span></span>
-<span id="cb2-8"><a href="#cb2-8"></a>    arguments <span class="ot">=</span> [ <span class="st">&quot;-s&quot;</span></span>
-<span id="cb2-9"><a href="#cb2-9"></a>                , <span class="st">&quot;--scss&quot;</span></span>
-<span id="cb2-10"><a href="#cb2-10"></a>                , <span class="st">&quot;--style&quot;</span>, <span class="st">&quot;compressed&quot;</span></span>
-<span id="cb2-11"><a href="#cb2-11"></a>                , <span class="st">&quot;--load-path&quot;</span>, <span class="st">&quot;scss&quot;</span></span>
-<span id="cb2-12"><a href="#cb2-12"></a>                ]</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>match <span class="st">&quot;scss/*.scss&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a>  route <span class="op">$</span> constRoute <span class="st">&quot;assets/main.css&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>  compile compressScssCompiler</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="ot">compressScssCompiler ::</span> <span class="dt">Compiler</span> (<span class="dt">Item</span> <span class="dt">String</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a>compressScssCompiler <span class="ot">=</span> withItemBody <span class="op">$</span> unixFilter <span class="st">&quot;sass&quot;</span> arguments</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a>  <span class="kw">where</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a>    arguments <span class="ot">=</span> [ <span class="st">&quot;-s&quot;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a>                , <span class="st">&quot;--scss&quot;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a>                , <span class="st">&quot;--style&quot;</span>, <span class="st">&quot;compressed&quot;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a>                , <span class="st">&quot;--load-path&quot;</span>, <span class="st">&quot;scss&quot;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a>                ]</span></code></pre></div>
 <p>Here I tell it to match any SCSS files within the <code>scss</code> directory, in this case it is only the <code>novella.scss</code> file, and that in turn is passed along to <code>sass</code>. Once <code>sass</code> is done doing its business, Hakyll then outputs the compiled data into <code>assets/main.css</code>.</p>
 <p>It worked wonderfully, so I set about tackling more interesting problems with Hakyll. As work on the blog came to a close, I found myself wanting to tweak some designs within the theme. It felt as though it had accrued some cruft and I didn’t care for some of the previous aesthetic choices I had made.</p>
 <p>While making alterations I discovered that <code>site watch</code> wasn’t observing the changes being made to the theme’s imported files. The previous solution works so long as you make no changes to any imported SCSS files and your directory structure looks a little something like what I had.</p>
 <p>Hakyll was only being told to watch <code>novella.scss</code>, and not the files contained within the <code>novella</code> subdirectory. These conditions made it remarkably unpleasant to work with while frequently iterating and tweaking the design. The seemingly obvious solution would be to use a glob that permits recursion and matching of the inner style sheets.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1"></a>match <span class="st">&quot;scss/**.scss&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a>  route <span class="op">$</span> constRoute <span class="st">&quot;assets/main.css&quot;</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a>  compile compressScssCompiler</span>
-<span id="cb3-4"><a href="#cb3-4"></a></span>
-<span id="cb3-5"><a href="#cb3-5"></a><span class="ot">compressScssCompiler ::</span> <span class="dt">Compiler</span> (<span class="dt">Item</span> <span class="dt">String</span>)</span>
-<span id="cb3-6"><a href="#cb3-6"></a>compressScssCompiler <span class="ot">=</span> withItemBody <span class="op">$</span> unixFilter <span class="st">&quot;sass&quot;</span> arguments</span>
-<span id="cb3-7"><a href="#cb3-7"></a>  <span class="kw">where</span></span>
-<span id="cb3-8"><a href="#cb3-8"></a>    arguments <span class="ot">=</span> [ <span class="st">&quot;-s&quot;</span></span>
-<span id="cb3-9"><a href="#cb3-9"></a>                , <span class="st">&quot;--scss&quot;</span></span>
-<span id="cb3-10"><a href="#cb3-10"></a>                , <span class="st">&quot;--style&quot;</span>, <span class="st">&quot;compressed&quot;</span></span>
-<span id="cb3-11"><a href="#cb3-11"></a>                ]</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>match <span class="st">&quot;scss/**.scss&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>  route <span class="op">$</span> constRoute <span class="st">&quot;assets/main.css&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>  compile compressScssCompiler</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="ot">compressScssCompiler ::</span> <span class="dt">Compiler</span> (<span class="dt">Item</span> <span class="dt">String</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>compressScssCompiler <span class="ot">=</span> withItemBody <span class="op">$</span> unixFilter <span class="st">&quot;sass&quot;</span> arguments</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a>  <span class="kw">where</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a>    arguments <span class="ot">=</span> [ <span class="st">&quot;-s&quot;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a>                , <span class="st">&quot;--scss&quot;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a>                , <span class="st">&quot;--style&quot;</span>, <span class="st">&quot;compressed&quot;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a>                ]</span></code></pre></div>
 <p>This should work, only so long as there are no file dependencies. In the case of the Novella theme, there are many dependencies that are tied together by a single file.</p>
 <p>After many failed attempts to skirt the issue, I discovered that Hakyll provides a marvellous solution to this very conundrum: <code>rulesExtraDependencies</code>. It ensures that any changes the compiler makes to files matching the specified dependencies are then processed with a follow-up build step. <code>makePatternDependency</code> is responsible for generating a <code>Dependency</code> structure from a given <code>Pattern</code>.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1"></a>match <span class="st">&quot;scss/**.scss&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb4-2"><a href="#cb4-2"></a>  compile getResourceString</span>
-<span id="cb4-3"><a href="#cb4-3"></a></span>
-<span id="cb4-4"><a href="#cb4-4"></a>scssDependency <span class="ot">&lt;-</span> makePatternDependency <span class="st">&quot;scss/**.scss&quot;</span></span>
-<span id="cb4-5"><a href="#cb4-5"></a>rulesExtraDependencies [scssDependency] <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb4-6"><a href="#cb4-6"></a>  create [<span class="st">&quot;assets/main.css&quot;</span>] <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb4-7"><a href="#cb4-7"></a>    route idRoute</span>
-<span id="cb4-8"><a href="#cb4-8"></a>    compile <span class="op">$</span></span>
-<span id="cb4-9"><a href="#cb4-9"></a>      loadBody <span class="st">&quot;scss/novella.scss&quot;</span></span>
-<span id="cb4-10"><a href="#cb4-10"></a>        <span class="op">&gt;&gt;=</span> makeItem</span>
-<span id="cb4-11"><a href="#cb4-11"></a>        <span class="op">&gt;&gt;=</span> scssCompiler</span>
-<span id="cb4-12"><a href="#cb4-12"></a></span>
-<span id="cb4-13"><a href="#cb4-13"></a><span class="ot">scssCompiler ::</span> <span class="dt">Item</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Compiler</span> (<span class="dt">Item</span> <span class="dt">String</span>)</span>
-<span id="cb4-14"><a href="#cb4-14"></a>scssCompiler <span class="ot">=</span> withItemBody <span class="op">$</span> unixFilter <span class="st">&quot;sass&quot;</span> arguments</span>
-<span id="cb4-15"><a href="#cb4-15"></a>  <span class="kw">where</span></span>
-<span id="cb4-16"><a href="#cb4-16"></a>    arguments <span class="ot">=</span> [ <span class="st">&quot;-s&quot;</span></span>
-<span id="cb4-17"><a href="#cb4-17"></a>                , <span class="st">&quot;--scss&quot;</span></span>
-<span id="cb4-18"><a href="#cb4-18"></a>                , <span class="st">&quot;--style&quot;</span>, <span class="st">&quot;compressed&quot;</span></span>
-<span id="cb4-19"><a href="#cb4-19"></a>                , <span class="st">&quot;--load-path&quot;</span>, <span class="st">&quot;scss&quot;</span></span>
-<span id="cb4-20"><a href="#cb4-20"></a>                ]</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>match <span class="st">&quot;scss/**.scss&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>  compile getResourceString</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>scssDependency <span class="ot">&lt;-</span> makePatternDependency <span class="st">&quot;scss/**.scss&quot;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>rulesExtraDependencies [scssDependency] <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a>  create [<span class="st">&quot;assets/main.css&quot;</span>] <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a>    route idRoute</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a>    compile <span class="op">$</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true"></a>      loadBody <span class="st">&quot;scss/novella.scss&quot;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a>        <span class="op">&gt;&gt;=</span> makeItem</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true"></a>        <span class="op">&gt;&gt;=</span> scssCompiler</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true"></a><span class="ot">scssCompiler ::</span> <span class="dt">Item</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Compiler</span> (<span class="dt">Item</span> <span class="dt">String</span>)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true"></a>scssCompiler <span class="ot">=</span> withItemBody <span class="op">$</span> unixFilter <span class="st">&quot;sass&quot;</span> arguments</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true"></a>  <span class="kw">where</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true"></a>    arguments <span class="ot">=</span> [ <span class="st">&quot;-s&quot;</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true"></a>                , <span class="st">&quot;--scss&quot;</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true"></a>                , <span class="st">&quot;--style&quot;</span>, <span class="st">&quot;compressed&quot;</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true"></a>                , <span class="st">&quot;--load-path&quot;</span>, <span class="st">&quot;scss&quot;</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true"></a>                ]</span></code></pre></div>
 <p>Now the matcher contains the recursive glob, which is also reflected in the <code>makePatternDependency</code> call, and removes the route call. The compile step changes to retrieve the resource’s contents rather than sending it to <code>sass</code>. This change allows the <code>novella.scss</code> contents to be recalled in the dependency step while skipping over any <code>sass</code> compilations for the imported SCSS files. The dependency step, as just mentioned, recalls the contents of <code>novella.scss</code> and passes it along to <code>sass</code>. Hakyll then takes the output and writes it to <code>assets/main.css</code>.</p>
 <p>Voilà! Hakyll will now update the CSS file whenever the any of the SCSS files are modified.</p>]]></summary>
 </entry>
@@ -209,17 +209,17 @@ func =&gt; &lt;T&gt;(value: inout T, transform: (inout T) throws -&gt; Void) ret
     <updated>2017-10-14T00:00:00Z</updated>
     <summary type="html"><![CDATA[<p>There is much pomp and circumstance over the new Swift <code>Codable</code> protocol. After indulging myself in the documentation and examples for a few hours, I couldn’t help but feel there was a glaring omission: reusable structures.</p>
 <p>In several projects that I’ve worked on I have found a need for a common contract between responses. For instance, I may want to know if the request had a successful operation–– and if not, perhaps a message informing me what the server had to say about it. This essentially creates a wrapper around the otherwise simple payload structure. To make the example a bit more interesting I’ll convolute the common data with another wrapper around it. Thus, the payload will be contained within a result structure which is confined to a frivolous wrapper, like so:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1"></a><span class="op">{</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a>  <span class="st">&quot;response&quot;</span><span class="op">:</span> <span class="op">{</span></span>
-<span id="cb1-3"><a href="#cb1-3"></a>    <span class="st">&quot;successful&quot;</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span></span>
-<span id="cb1-4"><a href="#cb1-4"></a>    <span class="st">&quot;message&quot;</span><span class="op">:</span> <span class="kw">null</span><span class="op">,</span></span>
-<span id="cb1-5"><a href="#cb1-5"></a>    <span class="st">&quot;payload&quot;</span><span class="op">:</span> <span class="op">{</span></span>
-<span id="cb1-6"><a href="#cb1-6"></a>      <span class="st">&quot;first_name&quot;</span><span class="op">:</span> <span class="st">&quot;Ryan&quot;</span><span class="op">,</span></span>
-<span id="cb1-7"><a href="#cb1-7"></a>      <span class="st">&quot;last_name&quot;</span><span class="op">:</span> <span class="st">&quot;Maroon&quot;</span><span class="op">,</span></span>
-<span id="cb1-8"><a href="#cb1-8"></a>      <span class="st">&quot;hobby&quot;</span><span class="op">:</span> <span class="st">&quot;Programming&quot;</span></span>
-<span id="cb1-9"><a href="#cb1-9"></a>    <span class="op">}</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>  <span class="op">}</span></span>
-<span id="cb1-11"><a href="#cb1-11"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>{</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>  <span class="st">&quot;response&quot;</span><span class="op">:</span> {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>    <span class="st">&quot;successful&quot;</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    <span class="st">&quot;message&quot;</span><span class="op">:</span> <span class="kw">null</span><span class="op">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>    <span class="st">&quot;payload&quot;</span><span class="op">:</span> {</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>      <span class="st">&quot;first_name&quot;</span><span class="op">:</span> <span class="st">&quot;Ryan&quot;</span><span class="op">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>      <span class="st">&quot;last_name&quot;</span><span class="op">:</span> <span class="st">&quot;Maroon&quot;</span><span class="op">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>      <span class="st">&quot;hobby&quot;</span><span class="op">:</span> <span class="st">&quot;Programming&quot;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a>    }</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>  }</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>}</span></code></pre></div>
 <p>Rather than constructing a very elaborate decoder path or rewriting the same boilerplate code for each structure, such behavior can be accommodated with the use of generics.</p>
 <pre class="swift"><code>struct Response&lt;T: Codable&gt;: Codable {
   let result: Result&lt;T&gt;
@@ -235,11 +235,11 @@ struct Result&lt;T: Codable&gt;: Codable {
   let payload: T
 }</code></pre>
 <p>Swift will now parse any payload data so long as it conforms to the <code>Codable</code> protocol. We’ll take a look at another example of this in a bit. First, let’s take a look at the response payload representing the person data set.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1"></a><span class="op">{</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a>  <span class="st">&quot;first_name&quot;</span><span class="op">:</span> <span class="st">&quot;Ryan&quot;</span><span class="op">,</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a>  <span class="st">&quot;last_name&quot;</span><span class="op">:</span> <span class="st">&quot;Maroon&quot;</span><span class="op">,</span></span>
-<span id="cb3-4"><a href="#cb3-4"></a>  <span class="st">&quot;hobby&quot;</span><span class="op">:</span> <span class="st">&quot;Programming&quot;</span></span>
-<span id="cb3-5"><a href="#cb3-5"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>{</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>  <span class="st">&quot;first_name&quot;</span><span class="op">:</span> <span class="st">&quot;Ryan&quot;</span><span class="op">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>  <span class="st">&quot;last_name&quot;</span><span class="op">:</span> <span class="st">&quot;Maroon&quot;</span><span class="op">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>  <span class="st">&quot;hobby&quot;</span><span class="op">:</span> <span class="st">&quot;Programming&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>}</span></code></pre></div>
 <p>The structure for such a response would then be described as such:</p>
 <pre class="swift"><code>struct Person: Codable {
   let firstName: String
@@ -256,11 +256,11 @@ struct Result&lt;T: Codable&gt;: Codable {
 <pre class="swift"><code>let decoder = JSONDecoder()
 let payload = try! decoder.decode(Response&lt;Person.self&gt;, from: responseData)</code></pre>
 <p>That’s it! Another example, as mentioned earlier, would be to utilize an array which also conforms to <code>Codable</code>. Assuming this is the payload from the server:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1"></a>[</span>
-<span id="cb6-2"><a href="#cb6-2"></a>  <span class="st">&quot;Haskell&quot;</span><span class="op">,</span></span>
-<span id="cb6-3"><a href="#cb6-3"></a>  <span class="st">&quot;Elixir&quot;</span><span class="op">,</span></span>
-<span id="cb6-4"><a href="#cb6-4"></a>  <span class="st">&quot;Elm&quot;</span><span class="op">,</span></span>
-<span id="cb6-5"><a href="#cb6-5"></a>]</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>[</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>  <span class="st">&quot;Haskell&quot;</span><span class="op">,</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a>  <span class="st">&quot;Elixir&quot;</span><span class="op">,</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a>  <span class="st">&quot;Elm&quot;</span><span class="op">,</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a>]</span></code></pre></div>
 <p>The decoder call would then be expressed as:</p>
 <pre class="swift"><code>let payload = try! decoder.decode(Response&lt;[String]&gt;.self, from: responseData)</code></pre>]]></summary>
 </entry>

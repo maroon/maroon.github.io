@@ -33,34 +33,34 @@
 <p>When it comes time to deploy a Hakyll project using a service such as GitHub Pages, there is a tutorial <a href="https://jaspervdj.be/hakyll/tutorials/github-pages-tutorial.html">just for that.</a></p>
 <p>Of course I wouldn’t be writing this if it had worked for me. I suspected it might not work out when I saw the files being copied between branches. For most, this solution may work without an issue. For myself, it was a constant source of pain. During the design phase of my project I realized that there should never be a reason to have the static web content follow the same flow as my development branch. It felt odd to have two disparate patterns inhabiting the same path. To better facilitate this divergence I created the <code>master</code> branch as an orphan.</p>
 <p>Because of this design decision, the helper script wouldn’t play nicely with the differences between branches. I had to update the <code>master</code>’s <code>.gitignore</code> file and adjust the <code>rsync</code> command to remove the unwanted files that remained during any branch checkouts.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb1-1"><a href="#cb1-1"></a>rsync -a --filter=<span class="st">'P _site/'</span>       <span class="kw">\</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a>         --filter=<span class="st">'P _cache/'</span>      <span class="kw">\</span></span>
-<span id="cb1-3"><a href="#cb1-3"></a>         --filter=<span class="st">'P .git/'</span>        <span class="kw">\</span></span>
-<span id="cb1-4"><a href="#cb1-4"></a>         --filter=<span class="st">'P .gitignore'</span>   <span class="kw">\</span></span>
-<span id="cb1-5"><a href="#cb1-5"></a>         --delete-excluded         <span class="kw">\</span></span>
-<span id="cb1-6"><a href="#cb1-6"></a>         _site/ <span class="kw">.</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>rsync -a --filter=<span class="st">'P _site/'</span>       <span class="kw">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>         --filter=<span class="st">'P _cache/'</span>      <span class="kw">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>         --filter=<span class="st">'P .git/'</span>        <span class="kw">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>         --filter=<span class="st">'P .gitignore'</span>   <span class="kw">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>         --delete-excluded         <span class="kw">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>         _site/ <span class="kw">.</span></span></code></pre></div>
 <p>This is an abridged version of the <code>rsync</code> necessary to achieve what I wanted. It is important to note that there are changes to the command that caused additional side effects which are not present within the tutorial link above.</p>
 <p>While using the <code>rsync</code> command from the tutorial I noticed several of my development files would “leak” over to the <code>master</code> branch, which I did not want. This was no fault of <code>rsync</code>, rather this was fallout from the use of an orphaned branch. The script’s shortcomings were merely exacerbated by its involvement. One option was to change the <code>.gitignore</code> file within the <code>master</code> branch to exclude these development related files. The problem that I faced was that some structures, such as the <code>post</code> directory, were shared between the <code>master</code> and development branches and could potentially require complex exclusion patterns. Therefore, I chose a different option: I decided to modify the <code>rsync</code> command in the deployment script since such structures would be overridden during its execution.</p>
 <p>This became increasingly painful to maintain as the site grew in complexity. In addition to the script’s frailty, I often had to combat data loss when I failed to append additional filter commands for new files or directories. The script did hold together while I deployed the first few updates to the site. Once I was satisfied with how the site worked, I turned my attention to creating a better deployment solution for myself.</p>
 <p><code>git</code> has a command called <code>worktree</code> that is defined as allowing the management of multiple working trees attached to the same repository. This amounts to performing a <code>checkout</code> on a branch which is then placed into a different directory than that of the working directory. As an aside, this is <a href="https://git-scm.com/docs/git-worktree/2.20.0#_bugs">often</a> a fantastic command for avoiding the typical <code>stash</code>/<code>commit</code>/<code>rebase</code> necessary to get the working directory back to its previous state after an emergency branch change.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb2-1"><a href="#cb2-1"></a>git worktree remove -f _master</span>
-<span id="cb2-2"><a href="#cb2-2"></a></span>
-<span id="cb2-3"><a href="#cb2-3"></a>git stash -u</span>
-<span id="cb2-4"><a href="#cb2-4"></a>git checkout devel</span>
-<span id="cb2-5"><a href="#cb2-5"></a>./scripts/rebuild_site.sh</span>
-<span id="cb2-6"><a href="#cb2-6"></a></span>
-<span id="cb2-7"><a href="#cb2-7"></a>git worktree add _master master</span>
-<span id="cb2-8"><a href="#cb2-8"></a>git fetch --all</span>
-<span id="cb2-9"><a href="#cb2-9"></a><span class="kw">(cd</span> _master <span class="kw">&amp;&amp;</span> git merge --ff-only<span class="kw">)</span></span>
-<span id="cb2-10"><a href="#cb2-10"></a></span>
-<span id="cb2-11"><a href="#cb2-11"></a>rsync -a _site/ _master/</span>
-<span id="cb2-12"><a href="#cb2-12"></a></span>
-<span id="cb2-13"><a href="#cb2-13"></a><span class="kw">(cd</span> _master <span class="kw">&amp;&amp;</span> git add --all <span class="kw">&amp;&amp;</span> git commit -m <span class="st">&quot;</span><span class="ot">$1</span><span class="st">&quot;</span><span class="kw">)</span></span>
-<span id="cb2-14"><a href="#cb2-14"></a></span>
-<span id="cb2-15"><a href="#cb2-15"></a>git worktree remove -f _master</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>git worktree remove -f _master</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>git stash -u</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>git checkout devel</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a>./scripts/rebuild_site.sh</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a>git worktree add _master master</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a>git fetch --all</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a><span class="kw">(cd</span> _master <span class="kw">&amp;&amp;</span> git merge --ff-only<span class="kw">)</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a>rsync -a _site/ _master/</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true"></a><span class="kw">(cd</span> _master <span class="kw">&amp;&amp;</span> git add --all <span class="kw">&amp;&amp;</span> git commit -m <span class="st">&quot;</span><span class="ot">$1</span><span class="st">&quot;</span><span class="kw">)</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true"></a>git worktree remove -f _master</span></code></pre></div>
 <p>Here is the core of the deployment script I came up with. Depending on workflow requirements some modifications to fetching and fast-forwarding might be necessary. Keep in mind that I haven’t had a reason to test this on a non-orphaned Hakyll project, although I would imagine that it should work in a similar fashion to the tutorial linked herein.</p>
 <p>First it ensures that no work tree exists within the <code>_master</code> directory; if there is, any unsaved changes within the directory are lost. The steps following that are pretty straightforward: stash all changes, checkout the development branch, and preform a rebuild of the static web content. After that the <code>worktree</code> command is leveraged: it creates a working tree of the <code>master</code> branch inside the <code>_master</code> directory. The latest remote changes are fetched and the local <code>master</code> repository is fast-forwarded. It then issues an <code>rsync</code> command that copies the static web content contained within the <code>_site</code> directory into the <code>_master</code> directory. All the changes within <code>_master</code> are then staged and committed. Finally, the working tree is removed, leaving the development branch in a clean state and any unsaved changes at the top of the stash.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb3-1"><a href="#cb3-1"></a>→ ./scripts/deploy.sh <span class="st">&quot;Commit message goes here!&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode zsh"><code class="sourceCode zsh"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>→ ./scripts/deploy.sh <span class="st">&quot;Commit message goes here!&quot;</span></span></code></pre></div>
 <p>This is an example of a call to the deployment script. Note the argument given to it is passed along as the <code>master</code>’s commit message. After the script has finished I review the changes made to the <code>master</code> branch. If all looks well, I then push those changes to the remote repository.</p>
 
       </div>
@@ -81,7 +81,7 @@
     <div class="footer-column-wrapper">
       <div class="footer-column footer-site-description">
         Experiments, problems, ideas, and general nonsense.<br />
-        My name is <a href="../../../../../about/">Ryan and I like programming.</a>
+        <a href="../../../../../about/">My name is Ryan and I like programming.</a>
       </div>
       <div class="footer-column footer-crumb-column">
         <ul class="crumb-list">
