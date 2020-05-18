@@ -2,7 +2,7 @@
 title: About
 ---
 
-My name is Ryan and I like programming. It's more likely an obsession if we're being honest. When people ask me what I do for a living I tell them that I write software. When they ask what I do for fun I tell them that I write software. Then they laugh and say, "No, no. I mean what do you aside from that? Like, in your spare time? You know... for a hobby?" After replying that I write software for a third time, they glaze over, sip their beverage, and walk off. [Bunch of weirdos.](https://gph.is/11zQDJ1)
+My name is Ryan and I like programming. It's more likely an obsession if we're being honest. When people ask me what I do for a living I tell them that I write software. When they ask what I do for fun I tell them that I write software. Then they laugh and say, "No, no. I mean what do you aside from that? Like, in your spare time? You know... for a hobby?" After replying that I write software for a third time, they glaze over, sip their beverage, and walk off. Bunch of weirdos.
 
 I started writing software at an absurdly young age and I've never found anything that quite matches it for excitement. I love the feeling of coming up with solutions to problems and musing over them until I feel as though I've reached the pinnacle of what I can achieve with it.
 
