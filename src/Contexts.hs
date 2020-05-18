@@ -50,5 +50,4 @@ postContext config =
   metaContext config
 
 tagsContext :: Context String
-tagsContext = tagField "tag" <>
-              defaultContext
+tagsContext = tagField "tag" <> defaultContext
