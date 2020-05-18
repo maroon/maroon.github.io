@@ -9,7 +9,7 @@ executable site
   ghc-options:        -Wall -threaded
   default-language:   Haskell2010
   default-extensions:
-      LambdaCase
+    LambdaCase
   build-depends:
       base               ^>= 4.13
     , containers         ^>= 0.6
@@ -19,10 +19,10 @@ executable site
     , time-locale-compat ^>= 0.1
     , yaml               ^>= 0.11
   other-modules:
-      Archive
-    , Config
-    , Contexts
-    , Feed
-    , Routes
-    , Rules
-    , ScssCompiler
+    Archive
+    Config
+    Contexts
+    Feed
+    Routes
+    Rules
+    ScssCompiler
