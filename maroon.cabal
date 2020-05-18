@@ -14,8 +14,8 @@ executable site
       base               ^>= 4.12
     , containers         ^>= 0.6
     , filepath           ^>= 1.4
-    , hakyll             ^>= 4.12
-    , time               ^>= 1.8
+    , hakyll             ^>= 4.13
+    , time               ^>= 1.9
     , time-locale-compat ^>= 0.1
     , yaml               ^>= 0.11
   other-modules:
