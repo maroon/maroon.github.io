@@ -8,6 +8,7 @@ body {
 
 a {
   padding: 0.125em;
+  margin: -0.125em;
   text-decoration: underline;
 
   @include color-scheme(color, text-color);
