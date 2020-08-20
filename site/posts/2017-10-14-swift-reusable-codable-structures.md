@@ -70,7 +70,7 @@ Finally, the decoder would take the response data and the generic wrapper like t
 
 ``` swift
 let decoder = JSONDecoder()
-let payload = try! decoder.decode(Response<Person.self>, from: responseData)
+let payload = try! decoder.decode(Response<Person>.self, from: responseData)
 ```
 
 That's it! Another example, as mentioned earlier, would be to utilize an array which also conforms to `Codable`. Assuming this is the payload from the server:
