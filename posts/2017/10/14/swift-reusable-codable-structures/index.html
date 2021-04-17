@@ -77,7 +77,7 @@ struct Result&lt;T: Codable&gt;: Codable {
 }</code></pre>
 <p>Finally, the decoder would take the response data and the generic wrapper like this:</p>
 <pre class="swift"><code>let decoder = JSONDecoder()
-let payload = try! decoder.decode(Response&lt;Person.self&gt;, from: responseData)</code></pre>
+let payload = try! decoder.decode(Response&lt;Person&gt;.self, from: responseData)</code></pre>
 <p>That’s it! Another example, as mentioned earlier, would be to utilize an array which also conforms to <code>Codable</code>. Assuming this is the payload from the server:</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>[</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>  <span class="st">&quot;Haskell&quot;</span><span class="op">,</span></span>
