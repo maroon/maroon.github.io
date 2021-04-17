@@ -1,4 +1,4 @@
-cabal-version:      2.4
+cabal-version:      3.0
 
 name:               maroon
 version:            0.1.0.0
@@ -11,7 +11,7 @@ executable site
   default-extensions:
     LambdaCase
   build-depends:
-      base               ^>= 4.13
+      base               ^>= 4.14
     , containers         ^>= 0.6
     , filepath           ^>= 1.4
     , hakyll             ^>= 4.13
